@@ -71,3 +71,9 @@ pub mod web_fetch;
 pub mod web_search_provider_routing;
 pub mod web_search_tool;
 pub mod wrappers;
+
+// --- JobFirst tools ---
+pub mod jobfirst_resume_store;
+pub mod jobfirst_upload_resume;
+pub mod jobfirst_get_matches;
+pub mod jobfirst_explain_match;
