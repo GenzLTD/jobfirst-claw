@@ -1,0 +1,4 @@
+# 强制 jobfirst-claw 使用 stable，避免与 nightly 混用导致 E0514
+[toolchain]
+channel = "stable"
+components = ["rustfmt", "clippy"]

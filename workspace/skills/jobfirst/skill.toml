@@ -1,0 +1,8 @@
+[name]
+id = "jobfirst"
+name = "JobFirst 求职助理"
+version = "0.1.0"
+
+[description]
+summary = "求职助理技能：简历上传、职位匹配、匹配理由解读"
+when_to_use = "用户进行求职、简历优化、职位推荐相关对话时"

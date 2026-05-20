@@ -1,0 +1,28 @@
+# SOP MQTT 触发器配置示例
+# 将以下内容合并到 config.toml
+
+# 1. 启用 MQTT 通道
+[channels_config.mqtt]
+broker_url = "mqtts://broker.example.com:8883"
+client_id = "jobfirst-agent-1"
+topics = ["sensors/alert", "ops/deploy/#"]
+qos = 1
+use_tls = true
+# username = "mqtt-user"
+# password = "mqtt-password"
+
+# 2. 在 workspace/sops/<sop-name>/SOP.toml 中定义 MQTT 触发器
+# 示例：
+#
+# [[triggers]]
+# type = "mqtt"
+# topic = "sensors/alert"
+# condition = "$.severity >= 2"
+#
+# [[triggers]]
+# type = "mqtt"
+# topic = "ops/deploy/#"
+# condition = null
+
+# 3. 启动 daemon（含 MQTT 监听）
+# zeroclaw daemon

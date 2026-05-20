@@ -1,0 +1,16 @@
+# Tunnel 配置示例（公网暴露）
+# 复制到 config.toml 或与现有 [tunnel] 合并
+
+[tunnel]
+# 可选: none | tailscale | ngrok | cloudflare | custom
+provider = "tailscale"
+
+[gateway]
+host = "127.0.0.1"
+port = 42617
+require_pairing = true
+allow_public_bind = false   # 建议 false，通过 tunnel 暴露
+
+# 环境变量预配 API Key（可选，便于编排器接入）
+# 启动前设置: export ZEROCLAW_API_KEY=your-secret-token
+# 或: export JOBFIRST_API_KEY=your-secret-token
