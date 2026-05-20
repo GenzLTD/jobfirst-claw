@@ -1,204 +1,188 @@
-# JobFirstClaw — 求职个人 AI 助理
+<p align="center">
+  <img src="https://raw.githubusercontent.com/zeroclaw-labs/zeroclaw/master/docs/assets/zeroclaw-banner.png" alt="ZeroClaw" width="600" />
+</p>
 
-> 基于 [ZeroClaw](https://github.com/zeroclaw-labs/zeroclaw) 的求职垂直扩展：对话式上传简历、职位匹配、匹配理由解读。
+<h1 align="center">🦀 ZeroClaw — Personal AI Assistant</h1>
 
 <p align="center">
-  <strong>一个二进制 · 多通道入口 · 对接主仓 API</strong>
+  <strong>You own the agent. You own the data. You own the machine it runs on.</strong>
+</p>
+
+<p align="center">
+  <a href="https://github.com/zeroclaw-labs/zeroclaw/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/zeroclaw-labs/zeroclaw/ci.yml?branch=master&label=build" alt="Build Status" /></a>
+  <a href="https://github.com/zeroclaw-labs/zeroclaw/releases/latest"><img src="https://img.shields.io/github/v/release/zeroclaw-labs/zeroclaw?label=release" alt="Latest release" /></a>
+  <a href="LICENSE-APACHE"><img src="https://img.shields.io/badge/license-MIT%20OR%20Apache%202.0-blue.svg" alt="License" /></a>
+  <a href="https://www.rust-lang.org"><img src="https://img.shields.io/badge/rust-edition%202024-orange?logo=rust" alt="Rust Edition 2024" /></a>
+  <a href="https://github.com/zeroclaw-labs/zeroclaw/graphs/contributors"><img src="https://img.shields.io/github/contributors/zeroclaw-labs/zeroclaw?color=green" alt="Contributors" /></a>
+  <a href="https://discord.com/invite/wDshRVqRjx"><img src="https://img.shields.io/badge/Discord-join-5865F2?style=flat&logo=discord&logoColor=white" alt="Discord" /></a>
+</p>
+
+<p align="center">
+  <a href="docs/book/src/introduction.md">Docs</a> ·
+  <a href="docs/book/src/philosophy.md">Philosophy</a> ·
+  <a href="docs/book/src/getting-started/quick-start.md">Quick start</a> ·
+  <a href="docs/book/src/architecture/overview.md">Architecture</a> ·
+  <a href="https://discord.com/invite/wDshRVqRjx">Discord</a>
 </p>
 
 ---
 
-## 一、项目定位
+ZeroClaw is an agent runtime — a single Rust binary you configure and run. It talks to LLM providers (Anthropic, OpenAI, Ollama, and ~20 others), reaches the world through 30+ channels (Discord, Telegram, Matrix, email, voice, webhooks, your own CLI), and acts through tools (shell, browser, HTTP, hardware, custom MCP servers). Everything runs on your machine, with your keys, in your workspace.
 
-JobFirstClaw 是 **ZeroClaw + 求职专用工具** 的单体项目，交付一个可用的「求职 AI 助理」：
+Read the [Philosophy](docs/book/src/philosophy.md) for the four opinions that shape it.
 
-| 维度 | 说明 |
-|------|------|
-| **底座** | ZeroClaw（Rust、单二进制、多通道） |
-| **垂直能力** | 简历上传、职位匹配、匹配理由解读 |
-| **入口** | CLI、Telegram、Webhook 等（按需开启） |
-| **后端** | 对接 zervi-rust 主仓 API（Tatha / SmartJobs） |
-
-**与 ZeroClaw 的关系**：JobFirstClaw = ZeroClaw + JobFirst 工具（addons）+ 求职助理身份与技能（workspace）。
-
----
-
-## 二、核心能力
-
-### 2.1 专用工具
-
-| 工具 | 职责 |
-|------|------|
-| `jobfirst_upload_resume` | 上传简历文件（PDF/DOCX/TXT），解析并存入会话 |
-| `jobfirst_get_matches` | 根据简历获取职位匹配推荐（Top-N） |
-| `jobfirst_explain_match` | 针对指定职位说明「为什么推荐这份」 |
-
-### 2.2 身份与技能
-
-- **Identity**：求职个人 AI 助理，能力边界、话术风格、工具选择约定
-- **Skills**：何时用哪个工具、如何解读匹配结果、Tatha 与 SmartJobs 后端差异
-
-### 2.3 后端支持
-
-| 后端 | 环境变量 | 说明 |
-|------|----------|------|
-| **Tatha** | `JOBFIRST_API_URL` | 默认，调用 `/v1/documents/convert` 等 |
-| **SmartJobs** | `JOBFIRST_BACKEND=smartjobs` | 调用主仓 Gateway `/api/v1/smartjobs` 等 |
-
----
-
-## 三、快速开始
-
-### 3.1 前置条件
-
-- Rust 工具链（`rustup`）
-- Windows：Visual Studio Build Tools（含 C++ 桌面开发）
-- 主仓 API 已启动（zervi-rust 的 api-gateway）
-
-### 3.2 初始化
-
-```powershell
-cd jobfirst-claw
-.\setup.ps1
-```
-
-若 `setup.ps1` 报错「字符串缺少终止符」等编码问题，改用：`.\setup-run.ps1`
-
-`setup.ps1` 会：
-
-1. 克隆 ZeroClaw 到当前目录（若尚未存在）
-2. 复制 JobFirst 工具到 `src/tools/`
-3. 修改 `mod.rs` 注册工具
-4. 复制 Identity 与 Skills 到 `~/.zeroclaw/workspace/`
-
-### 3.3 环境变量
-
-在项目根目录创建 `.env` 或配置环境变量：
+## Install
 
 ```bash
-# API 地址（必填）
-JOBFIRST_API_URL=http://localhost:3333
-
-# 认证 Token（upload-service 需 JWT，本地开发可生成测试 token）
-# pip install pyjwt
-# python scripts/gen_token.py
-# 或运行: .\scripts\generate-dev-token.ps1
-JOBFIRST_API_KEY=<生成的 JWT>
-
-# 后端类型（可选，默认 Tatha）
-# JOBFIRST_BACKEND=tatha
-# JOBFIRST_BACKEND=smartjobs
-
-# SmartJobs 专用（可选）
-# SMARTJOBS_API_URL=http://localhost:3333/api/v1/smartjobs
-
-# 认证 Token（主仓需 JWT 时必填）
-ZERVIGO_TOKEN=your_jwt_token
-# 或
-JOBFIRST_API_KEY=your_api_key
+curl -fsSL https://raw.githubusercontent.com/zeroclaw-labs/zeroclaw/master/install.sh | bash
 ```
 
-### 3.4 首次运行
+Or clone and run:
 
 ```bash
-# 1. 启动主仓 API（在 zervi-rust 根目录）
-cargo run -p api-gateway
-
-# 2. 初始化 ZeroClaw 配置（LLM Provider、API Key 等）
-zeroclaw onboard --interactive
-
-# 3. 对话测试
-zeroclaw agent -m "帮我上传简历"
-zeroclaw agent -m "E:\Downloads\resume.pdf 帮我匹配岗位"
+git clone https://github.com/zeroclaw-labs/zeroclaw.git
+cd zeroclaw
+./install.sh
 ```
 
-### 3.5 开发模式
+The installer asks whether you want a prebuilt binary (fast, ~seconds) or a source build (slower, customisable). Both end the same way — `zeroclaw onboard` kicks off automatically.
+
+Flags:
+
+```
+./install.sh --prebuilt              # always prebuilt; don't ask
+./install.sh --source                # always build from source
+./install.sh --minimal               # kernel only (~6.6 MB)
+./install.sh --source --features agent-runtime,channel-discord  # custom feature set
+./install.sh --skip-onboard          # install only, run `zeroclaw onboard` later
+./install.sh --list-features         # print available feature flags
+```
+
+Platform-specific notes: [Linux](docs/book/src/setup/linux.md) · [macOS](docs/book/src/setup/macos.md) · [Windows](docs/book/src/setup/windows.md) · [Docker](docs/book/src/setup/container.md)
+
+## Quick start
 
 ```bash
-cargo build --release
-cargo run -- agent -m "帮我匹配岗位"
+zeroclaw onboard                  # interactive onboard: provider, channels, agents, etc.
+zeroclaw agent -a <alias>         # interactive chat using the [agents.<alias>] entry
+zeroclaw service install          # register as systemd/launchctl/Windows Service
+zeroclaw service start            # run it always-on in the background
 ```
 
----
+Full walkthrough: [Quick start](docs/book/src/getting-started/quick-start.md) — or skip the safety gates with [YOLO mode](docs/book/src/getting-started/yolo.md) for dev boxes.
 
-## 四、目录结构
+## What ZeroClaw does
+
+- **Multi-channel** — one agent answering you across [every channel you configure](docs/book/src/channels/overview.md). Inbound messages from Discord, Telegram, Matrix, email, webhooks, CLI — all delivered to the same agent loop.
+- **Provider-agnostic** — [model providers](docs/book/src/providers/overview.md) are pluggable. Configure Anthropic, OpenAI, local Ollama, or any OpenAI-compatible endpoint. [Fallback chains and routing](docs/book/src/providers/fallback-and-routing.md) keep the agent running when a provider flakes.
+- **Security-first, with escape hatches** — default autonomy is `supervised`: medium-risk ops require approval, high-risk blocked. Workspace boundaries, command policy, OS-level sandboxes (Landlock / Bubblewrap / Seatbelt / Docker), and cryptographic [tool receipts](docs/book/src/security/tool-receipts.md) on every action. [YOLO mode](docs/book/src/getting-started/yolo.md) exists for trusted dev environments.
+- **Hardware-capable** — GPIO / I2C / SPI / USB on Raspberry Pi, STM32, Arduino, and ESP32 via the `Peripheral` trait. See [Hardware](docs/book/src/hardware/index.md).
+- **Gateway + dashboard** — HTTP / WebSocket gateway for clients, with a web dashboard for chat, memory browsing, config editing, cron management, and tool inspection.
+- **SOP engine** — event-triggered [Standard Operating Procedures](docs/book/src/sop/index.md) (MQTT / webhook / cron / peripheral) with approval gates and resumable runs.
+- **ACP** — IDE / editor integration via [Agent Client Protocol](docs/book/src/channels/acp.md) (JSON-RPC 2.0 over stdio).
+
+## Configuration
+
+One TOML file at `~/.zeroclaw/config.toml`. Pointers:
+
+- [Provider configuration](docs/book/src/providers/configuration.md) — the universal `[providers.models.<type>.<alias>]` schema
+- [Channels overview](docs/book/src/channels/overview.md) — per-channel `[channels.<type>.<alias>]` blocks
+- [Security overview](docs/book/src/security/overview.md) — autonomy, sandboxing, tool receipts
+- [Full config reference](docs/book/src/reference/config.md) — generated from the live schema; every key documented
+
+A V3 config has at minimum four section headers (`<type>.<alias>` shaped) — a provider entry, an agent that references it, and a risk profile the agent gates against. See [Provider Configuration → Minimal working example](docs/book/src/providers/configuration.md#minimal-working-example) for the canonical four-section form with inline type/alias commentary.
+
+For standard OpenAI Codex subscription auth, swap the provider entry to:
+
+```toml
+[providers.models.openai.coding]   # type = openai; alias = coding (you choose)
+model = "gpt-5-codex"
+wire_api = "responses"
+requires_openai_auth = true
+```
+
+…and point your agent at it with `model_provider = "openai.coding"`.
+
+Notes:
+
+- Normal OpenAI Codex subscription auth uses stored auth profiles, not an `api_key` on the provider entry.
+- Only set `api_key` / `uri` on `[providers.models.openai.<alias>]` when intentionally targeting a custom OpenAI-compatible gateway or endpoint.
+- If you see `provider streaming failed, falling back to non-streaming chat`, ZeroClaw retries the same request in non-streaming mode. Check `zeroclaw auth status` before changing provider config.
+
+## Architecture
 
 ```
-jobfirst-claw/
-├── addons/                      # JobFirst 工具源码
-│   ├── jobfirst_resume_store.rs
-│   ├── jobfirst_upload_resume.rs
-│   ├── jobfirst_get_matches.rs
-│   └── jobfirst_explain_match.rs
-├── workspace/                   # Identity + Skills 模板
-│   ├── IDENTITY.md
-│   └── skills/jobfirst/
-├── setup.ps1                    # 初始化脚本
-├── 设计思考与记录.md            # 架构与设计说明
-└── README-JOBFIRST.md           # 本文档
+┌──────────────────────────────────────────────────────────────┐
+│            channels       gateway        ACP                 │
+│          (30+ adapters)   (REST/WS)    (JSON-RPC)            │
+│                        ↓                                     │
+│                   ZeroClaw runtime                           │
+│         ┌──────────┬──────────┬──────────┐                   │
+│         │  agent   │ security │   SOP    │                   │
+│         │   loop   │  policy  │  engine  │                   │
+│         └──────────┴──────────┴──────────┘                   │
+│              ↓          ↓           ↓                        │
+│          providers    tools      memory                      │
+│         (Anthropic,  (shell,    (SQLite,                     │
+│          OpenAI,     browser,    embeddings)                 │
+│          Ollama,     HTTP,                                   │
+│          ~20 more)   hardware)                               │
+└──────────────────────────────────────────────────────────────┘
 ```
 
----
+Full detail with Mermaid diagrams: [Architecture overview](docs/book/src/architecture/overview.md) · [Request lifecycle](docs/book/src/architecture/request-lifecycle.md) · [Crates](docs/book/src/architecture/crates.md).
 
-## 五、与 ZeroClaw 的差异
+## Contributing
 
-| 维度 | ZeroClaw | JobFirstClaw |
-|------|----------|--------------|
-| 定位 | 通用 AI Agent 运行时 | 求职垂直 AI 助理 |
-| 工具 | 通用（shell、file、web_search 等） | + 求职专用（upload_resume、get_matches、explain_match） |
-| 身份 | 可配置，默认通用 | 预置「求职助理」身份与技能 |
-| 后端 | 无业务 API 对接 | 对接 Tatha / SmartJobs / 主仓 Gateway |
-| 路径策略 | 工作区路径限制 | 简历文件支持用户任意路径 |
+Start with [how to contribute](docs/book/src/contributing/how-to.md). Larger changes go through the [RFC process](docs/book/src/contributing/rfcs.md). Real-time chat lives on [Discord](https://discord.com/invite/wDshRVqRjx) (the best way to reach the team); durable work tracking is on [GitHub issues](https://github.com/zeroclaw-labs/zeroclaw/issues).
 
----
+Good places to start:
 
-## 六、主仓 API 约定
+- New channel → `crates/zeroclaw-channels/`
+- New provider → `crates/zeroclaw-providers/`
+- New tool → `crates/zeroclaw-tools/`
+- Hardware support → `crates/zeroclaw-hardware/`
+- Docs → `docs/book/src/`
 
-| 能力 | 方法 | 路径 |
-|------|------|------|
-| 上传简历 | POST | `/api/v1/upload/upload` |
-| 匹配职位 | GET | `/api/v1/job/matches?resume_id=xxx&top_n=10` |
-| 解释匹配 | GET | `/api/v1/job/{job_id}/explain?resume_id=xxx` |
+AI-assisted PRs are welcome; see [Contribution culture (RFC #5615)](https://github.com/zeroclaw-labs/zeroclaw/issues/5615) for the co-authorship norms.
 
-主仓接口未就绪时，工具会返回友好占位说明，便于先跑通对话流程。
+<!-- BEGIN:RECENT_CONTRIBUTORS -->
+<!-- END:RECENT_CONTRIBUTORS -->
 
----
+## Security
 
-## 七、常见问题
+Do not file public issues for security vulnerabilities. Email `security@zeroclaw.dev`. See [SECURITY.md](SECURITY.md) for the full policy.
 
-### 7.1 简历路径报错
+## Official repository & impersonation notice
 
-**勿用** `pdf_read`、`file_read` 处理简历——它们受工作区路径限制。必须使用 `jobfirst_upload_resume` 或 `jobfirst_get_matches` 的 `file_path` 参数。
+This is the only official ZeroClaw repository:
 
-### 7.2 主仓未启动
+> <https://github.com/zeroclaw-labs/zeroclaw>
 
-确认 `JOBFIRST_API_URL` 可达，且主仓 api-gateway 已运行。Tatha 默认端口 8010，SmartJobs 经 Gateway 通常为 3333。
+Any other repository, organization, domain, or package claiming to be "ZeroClaw" or implying affiliation with ZeroClaw Labs is **unauthorized and not affiliated with this project**.
 
-### 7.3 认证失败
+## License
 
-主仓需 JWT 时，设置 `ZERVIGO_TOKEN` 或 `JOBFIRST_API_KEY`，从 Zervigo 登录或主仓获取。
+Dual-licensed: [MIT](LICENSE-MIT) OR [Apache 2.0](LICENSE-APACHE). You may choose either. Contributors automatically grant rights under both — see [CLA](docs/book/src/contributing/cla.md). The **ZeroClaw** name and logo are trademarks of ZeroClaw Labs.
 
----
+## Credits
 
-## 八、参考文档
+Built and maintained by the community — original creator [@theonlyhennygod](https://github.com/theonlyhennygod); project lead [@JordanTheJet](https://github.com/JordanTheJet). Full maintainer list in [Communication](docs/book/src/contributing/communication.md).
 
-- [设计思考与记录](设计思考与记录.md) — 架构决策与实现说明
-- [API 参考](docs/api-reference.md) — 能力发现、Webhook、Tunnel、认证
-- [JobFirst 个人 AI 助理版_ZeroClaw 路线](../JobFirst个人AI助理版_ZeroClaw路线.md) — 产品路线
-- [ZeroClaw 官方仓库](https://github.com/zeroclaw-labs/zeroclaw)
-- [ZeroClaw Channels Reference](https://github.com/zeroclaw-labs/zeroclaw/blob/main/docs/channels-reference.md) — 通道配置
+Thanks to the communities that incubated early work: **Harvard University**, **MIT**, **Sundai Club**, and every contributor pushing it forward.
 
----
+<p align="center">
+  <a href="https://www.star-history.com/#zeroclaw-labs/zeroclaw&type=date&legend=top-left">
+    <picture>
+     <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=zeroclaw-labs/zeroclaw&type=date&theme=dark&legend=top-left" />
+     <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=zeroclaw-labs/zeroclaw&type=date&legend=top-left" />
+     <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=zeroclaw-labs/zeroclaw&type=date&legend=top-left" />
+    </picture>
+  </a>
+</p>
 
-## 九、致谢与归属
-
-**本产品基于 [ZeroClaw](https://github.com/zeroclaw-labs/zeroclaw) 构建。** JobFirstClaw 并非 ZeroClaw 官方项目，亦未获 ZeroClaw Labs 背书。
-
-- 底座：ZeroClaw（Copyright 2025 ZeroClaw Labs）
-- 垂直扩展：JobFirst 求职工具与身份（见 [NOTICE](NOTICE)）
-
----
-
-## 十、许可证
-
-本扩展遵循 ZeroClaw 的 [MIT / Apache-2.0](LICENSE-MIT) 双许可。分发时请保留 `LICENSE-MIT`、`LICENSE-APACHE` 及 [NOTICE](NOTICE) 文件。
+<p align="center">
+  <a href="https://github.com/zeroclaw-labs/zeroclaw/graphs/contributors">
+    <img src="https://contrib.rocks/image?repo=zeroclaw-labs/zeroclaw" alt="ZeroClaw contributors" />
+  </a>
+</p>
