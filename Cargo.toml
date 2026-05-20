@@ -8,7 +8,7 @@ version = "0.8.0-beta-1"
 edition = "2024"
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/zeroclaw-labs/zeroclaw"
-rust-version = "1.87"
+rust-version = "1.86"
 
 [workspace.dependencies]
 zeroclaw-api = { path = "crates/zeroclaw-api", version = "0.8.0-beta-1" }
