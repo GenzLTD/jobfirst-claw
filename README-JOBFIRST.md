@@ -25,13 +25,20 @@ JobFirstClaw 是 **ZeroClaw + 求职专用工具** 的单体项目，交付一�
 
 ## 二、核心能力
 
-### 2.1 专用工具
+### 2.1 专用工具（M0 默认：Slice 收件箱）
+
+`JOBFIRST_BACKEND=slice`（**默认**）时注册：
 
 | 工具 | 职责 |
 |------|------|
-| `jobfirst_upload_resume` | 上传简历文件（PDF/DOCX/TXT），解析并存入会话 |
-| `jobfirst_get_matches` | 根据简历获取职位匹配推荐（Top-N） |
-| `jobfirst_explain_match` | 针对指定职位说明「为什么推荐这份」 |
+| `jobfirst_slice_submit_resume` | 提交简历 → 获得 `resume_id` |
+| `jobfirst_slice_run_apply` | Agent 批量投递（Top-N 或指定 `job_ids`） |
+| `jobfirst_slice_list_inbox` | 反馈收件箱 |
+| `jobfirst_slice_inbox_decision` | 面试 / 跳过 |
+
+环境变量：`JOBFIRST_SLICE_URL`（默认 `http://127.0.0.1:3005`）。需先启动 `jobfirst-slice-service` 或经 gateway `/api/v1/slice`。
+
+**旧路径**（`JOBFIRST_BACKEND=tatha|smartjobs`）：`jobfirst_upload_resume` · `jobfirst_get_matches` · `jobfirst_explain_match`
 
 ### 2.2 身份与技能
 
