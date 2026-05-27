@@ -1889,6 +1889,35 @@ pub fn all_tools_with_runtime(
     // Pipeline construction waits for ScopedToolRegistry::assemble(), where the
     // effective per-agent policy and optional caller allowlist are both known.
 
+    // JobFirst Slice API (M0 inbox). Default backend for jobfirst-claw fork.
+    let jobfirst_backend = std::env::var("JOBFIRST_BACKEND")
+        .unwrap_or_else(|_| "slice".to_string())
+        .to_lowercase();
+    if jobfirst_backend == "slice" {
+        tool_arcs.push(Arc::new(
+            zeroclaw_tools::jobfirst_slice::JobFirstSliceSubmitResumeTool::default(),
+        ));
+        tool_arcs.push(Arc::new(
+            zeroclaw_tools::jobfirst_slice::JobFirstSliceApplyTool::default(),
+        ));
+        tool_arcs.push(Arc::new(
+            zeroclaw_tools::jobfirst_slice::JobFirstSliceListInboxTool::default(),
+        ));
+        tool_arcs.push(Arc::new(
+            zeroclaw_tools::jobfirst_slice::JobFirstSliceInboxDecisionTool::default(),
+        ));
+    } else {
+        tool_arcs.push(Arc::new(
+            zeroclaw_tools::jobfirst_upload_resume::JobFirstUploadResumeTool::default(),
+        ));
+        tool_arcs.push(Arc::new(
+            zeroclaw_tools::jobfirst_get_matches::JobFirstGetMatchesTool::default(),
+        ));
+        tool_arcs.push(Arc::new(
+            zeroclaw_tools::jobfirst_explain_match::JobFirstExplainMatchTool::default(),
+        ));
+    }
+
     AllToolsResult {
         unfiltered_tool_arcs: tool_arcs.clone(),
         tools: boxed_registry_from_arcs(tool_arcs),
