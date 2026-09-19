@@ -2,7 +2,7 @@
 
 use crate::jobfirst_resume_store;
 use async_trait::async_trait;
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 use std::time::Duration;
 use zeroclaw_api::tool::{Tool, ToolResult};
 
@@ -198,7 +198,8 @@ impl Tool for JobFirstSliceApplyTool {
         let resume_id = resolve_resume_id(&args)?;
         let top = args.get("top").and_then(|v| v.as_u64()).unwrap_or(3).max(1) as u32;
 
-        let job_ids: Vec<String> = if let Some(arr) = args.get("job_ids").and_then(|v| v.as_array()) {
+        let job_ids: Vec<String> = if let Some(arr) = args.get("job_ids").and_then(|v| v.as_array())
+        {
             arr.iter()
                 .filter_map(|v| v.as_str().map(|s| s.to_string()))
                 .collect()

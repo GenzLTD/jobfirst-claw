@@ -1143,9 +1143,15 @@ pub fn all_tools_with_runtime(
         .unwrap_or_else(|_| "slice".to_string())
         .to_lowercase();
     if jobfirst_backend == "slice" {
-        tool_arcs.push(Arc::new(zeroclaw_tools::jobfirst_slice::JobFirstSliceSubmitResumeTool::default()));
-        tool_arcs.push(Arc::new(zeroclaw_tools::jobfirst_slice::JobFirstSliceApplyTool::default()));
-        tool_arcs.push(Arc::new(zeroclaw_tools::jobfirst_slice::JobFirstSliceListInboxTool::default()));
+        tool_arcs.push(Arc::new(
+            zeroclaw_tools::jobfirst_slice::JobFirstSliceSubmitResumeTool::default(),
+        ));
+        tool_arcs.push(Arc::new(
+            zeroclaw_tools::jobfirst_slice::JobFirstSliceApplyTool::default(),
+        ));
+        tool_arcs.push(Arc::new(
+            zeroclaw_tools::jobfirst_slice::JobFirstSliceListInboxTool::default(),
+        ));
         tool_arcs.push(Arc::new(
             zeroclaw_tools::jobfirst_slice::JobFirstSliceInboxDecisionTool::default(),
         ));
