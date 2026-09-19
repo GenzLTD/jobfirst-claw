@@ -1,21 +1,55 @@
-# Dependabot 已停用（2026-09-13，GenzLTD 治理行动）
-# 原因：master 分支自 2026-05-27 停更，依赖升级 PR 无法有效验证
-# 恢复方式：仓库恢复活跃后，将各生态 open-pull-requests-limit 改回
-#   cargo: 3 / github-actions: 1 / docker: 1
+# Dependabot 配置（2026-09-20 由 owner 指示恢复启用）
+# 前史：2026-09-13 因 master 休眠（5/27 起停更）治理性停用；现按原恢复方式重开
+# 注意：master 仍处休眠态，升级 PR 将主要依赖 CI + owner review 验证
 version: 2
+
 updates:
-  - package-ecosystem: "cargo"
+  - package-ecosystem: cargo
     directory: "/"
     schedule:
-      interval: "daily"
-    open-pull-requests-limit: 0
-  - package-ecosystem: "github-actions"
+      interval: daily
+    target-branch: master
+    open-pull-requests-limit: 3
+    labels:
+      - "dependencies"
+    groups:
+      rust-all:
+        patterns:
+          - "*"
+        update-types:
+          - minor
+          - patch
+
+  - package-ecosystem: github-actions
     directory: "/"
     schedule:
-      interval: "daily"
-    open-pull-requests-limit: 0
-  - package-ecosystem: "docker"
+      interval: daily
+    target-branch: master
+    open-pull-requests-limit: 1
+    labels:
+      - "ci"
+      - "dependencies"
+    groups:
+      actions-all:
+        patterns:
+          - "*"
+        update-types:
+          - minor
+          - patch
+
+  - package-ecosystem: docker
     directory: "/"
     schedule:
-      interval: "daily"
-    open-pull-requests-limit: 0
+      interval: daily
+    target-branch: master
+    open-pull-requests-limit: 1
+    labels:
+      - "ci"
+      - "dependencies"
+    groups:
+      docker-all:
+        patterns:
+          - "*"
+        update-types:
+          - minor
+          - patch
