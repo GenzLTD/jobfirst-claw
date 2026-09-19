@@ -7464,7 +7464,7 @@ version = "0.14.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "343d3bd7056eda839b03204e68deff7d1b13aba7af2b2fd16890697274262ee7"
 dependencies = [
- "heck 0.5.0",
+ "heck 0.4.1",
  "itertools 0.14.0",
  "log",
  "multimap",
@@ -13156,7 +13156,7 @@ dependencies = [
  "serde",
  "serde_json",
  "strum 0.27.2",
- "strum_macros 0.27.2",
+ "strum_macros 0.28.0",
  "thiserror 2.0.18",
  "tokio",
  "tokio-util",
@@ -13402,7 +13402,7 @@ dependencies = [
  "serde_json",
  "sha2 0.10.9",
  "strum 0.27.2",
- "strum_macros 0.27.2",
+ "strum_macros 0.28.0",
  "tempfile",
  "tokio",
  "tracing",
