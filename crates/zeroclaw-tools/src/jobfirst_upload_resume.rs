@@ -62,14 +62,9 @@ fn normalize_file_path(s: &str) -> String {
         .to_string()
 }
 
+#[derive(Default)]
 pub struct JobFirstUploadResumeTool {
     _placeholder: (),
-}
-
-impl Default for JobFirstUploadResumeTool {
-    fn default() -> Self {
-        Self { _placeholder: () }
-    }
 }
 
 #[async_trait]
@@ -123,7 +118,7 @@ impl Tool for JobFirstUploadResumeTool {
 
         let bytes = tokio::fs::read(path)
             .await
-            .map_err(|e| anyhow::anyhow!("read failed: {}", e))?;
+            .map_err(|e| anyhow::Error::msg(format!("read failed: {}", e)))?;
         let file_name = path
             .file_name()
             .and_then(|n| n.to_str())
@@ -150,7 +145,7 @@ impl Tool for JobFirstUploadResumeTool {
             let part = reqwest::multipart::Part::bytes(bytes)
                 .file_name(file_name.clone())
                 .mime_str(mime)
-                .map_err(|e| anyhow::anyhow!("multipart: {}", e))?;
+                .map_err(|e| anyhow::Error::msg(format!("multipart: {}", e)))?;
             let form = reqwest::multipart::Form::new()
                 .part("file", part)
                 .text("document_type", "resume");
@@ -236,7 +231,7 @@ impl Tool for JobFirstUploadResumeTool {
             let part = reqwest::multipart::Part::bytes(bytes)
                 .file_name(file_name.clone())
                 .mime_str(mime)
-                .map_err(|e| anyhow::anyhow!("multipart: {}", e))?;
+                .map_err(|e| anyhow::Error::msg(format!("multipart: {}", e)))?;
             let form = reqwest::multipart::Form::new().part("file", part);
 
             let mut req = reqwest::Client::builder()
@@ -253,7 +248,7 @@ impl Tool for JobFirstUploadResumeTool {
                     let status = resp.status();
                     let body = resp.text().await.unwrap_or_default();
                     if !status.is_success() {
-                        let err_msg = format!("API returned {}: {}", status, &body);
+                        let err_msg = format!("API returned {}: {}", status, body);
                         return Ok(ToolResult {
                             success: false,
                             output: body,

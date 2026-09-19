@@ -19,7 +19,7 @@ fn http_client() -> anyhow::Result<reqwest::Client> {
         .build()?)
 }
 
-fn slice_data<'a>(body: &'a Value) -> anyhow::Result<&'a Value> {
+fn slice_data(body: &Value) -> anyhow::Result<&Value> {
     let code = body.get("code").and_then(|v| v.as_i64()).unwrap_or(-1);
     if code != 0 {
         let msg = body
@@ -29,7 +29,7 @@ fn slice_data<'a>(body: &'a Value) -> anyhow::Result<&'a Value> {
         anyhow::bail!("{}", msg);
     }
     body.get("data")
-        .ok_or_else(|| anyhow::anyhow!("slice response missing data"))
+        .ok_or_else(|| anyhow::Error::msg("slice response missing data"))
 }
 
 async fn slice_post(path: &str, payload: Value) -> anyhow::Result<Value> {
@@ -71,7 +71,7 @@ fn resolve_resume_id(args: &Value) -> anyhow::Result<String> {
         }
     }
     jobfirst_resume_store::get_resume_id()
-        .ok_or_else(|| anyhow::anyhow!("no resume_id; call jobfirst_slice_submit_resume first"))
+        .ok_or_else(|| anyhow::Error::msg("no resume_id; call jobfirst_slice_submit_resume first"))
 }
 
 // --- submit resume ---
@@ -141,7 +141,7 @@ impl Tool for JobFirstSliceSubmitResumeTool {
         let resume_id = data
             .get("resume_id")
             .and_then(|v| v.as_str())
-            .ok_or_else(|| anyhow::anyhow!("missing resume_id in response"))?;
+            .ok_or_else(|| anyhow::Error::msg("missing resume_id in response"))?;
         jobfirst_resume_store::set_resume(text);
         jobfirst_resume_store::set_resume_id(resume_id.to_string());
 
@@ -338,7 +338,7 @@ impl Tool for JobFirstSliceInboxDecisionTool {
             .and_then(|v| v.as_str())
             .map(|s| s.trim())
             .filter(|s| !s.is_empty())
-            .ok_or_else(|| anyhow::anyhow!("application_id required"))?;
+            .ok_or_else(|| anyhow::Error::msg("application_id required"))?;
         let action = args
             .get("action")
             .and_then(|v| v.as_str())

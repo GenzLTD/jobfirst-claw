@@ -64,7 +64,7 @@ async fn tatha_convert_file(path: &std::path::Path) -> anyhow::Result<String> {
     let part = reqwest::multipart::Part::bytes(bytes)
         .file_name(name)
         .mime_str(mime)
-        .map_err(|e| anyhow::anyhow!("multipart: {}", e))?;
+        .map_err(|e| anyhow::Error::msg(format!("multipart: {}", e)))?;
     let form = reqwest::multipart::Form::new()
         .part("file", part)
         .text("document_type", "resume");
@@ -154,8 +154,7 @@ impl Tool for JobFirstGetMatchesTool {
             .get("top_n")
             .and_then(|v| v.as_i64())
             .unwrap_or(5)
-            .min(20)
-            .max(1) as u32;
+            .clamp(1, 20) as u32;
 
         if is_tatha_backend() {
             let mut resume_text_val = resume_text;
