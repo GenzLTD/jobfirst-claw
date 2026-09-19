@@ -1144,26 +1144,26 @@ pub fn all_tools_with_runtime(
         .to_lowercase();
     if jobfirst_backend == "slice" {
         tool_arcs.push(Arc::new(
-            zeroclaw_tools::jobfirst_slice::JobFirstSliceSubmitResumeTool::default(),
+            zeroclaw_tools::jobfirst_slice::JobFirstSliceSubmitResumeTool,
         ));
         tool_arcs.push(Arc::new(
-            zeroclaw_tools::jobfirst_slice::JobFirstSliceApplyTool::default(),
+            zeroclaw_tools::jobfirst_slice::JobFirstSliceApplyTool,
         ));
         tool_arcs.push(Arc::new(
-            zeroclaw_tools::jobfirst_slice::JobFirstSliceListInboxTool::default(),
+            zeroclaw_tools::jobfirst_slice::JobFirstSliceListInboxTool,
         ));
         tool_arcs.push(Arc::new(
-            zeroclaw_tools::jobfirst_slice::JobFirstSliceInboxDecisionTool::default(),
+            zeroclaw_tools::jobfirst_slice::JobFirstSliceInboxDecisionTool,
         ));
     } else {
         tool_arcs.push(Arc::new(
             zeroclaw_tools::jobfirst_upload_resume::JobFirstUploadResumeTool::default(),
         ));
         tool_arcs.push(Arc::new(
-            zeroclaw_tools::jobfirst_get_matches::JobFirstGetMatchesTool::default(),
+            zeroclaw_tools::jobfirst_get_matches::JobFirstGetMatchesTool,
         ));
         tool_arcs.push(Arc::new(
-            zeroclaw_tools::jobfirst_explain_match::JobFirstExplainMatchTool::default(),
+            zeroclaw_tools::jobfirst_explain_match::JobFirstExplainMatchTool,
         ));
     }
 
