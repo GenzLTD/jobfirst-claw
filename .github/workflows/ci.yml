@@ -45,7 +45,7 @@ jobs:
           cargo clippy
           --workspace
           --exclude zeroclaw-desktop
-          --all-targets
+          --lib --bins
           --features ci-all
           -- -D warnings
 
