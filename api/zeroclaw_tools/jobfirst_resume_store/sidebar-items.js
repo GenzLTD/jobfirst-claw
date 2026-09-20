@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["get_resume","get_resume_id","set_resume","set_resume_id","take_resume"]};
