@@ -193,7 +193,7 @@ impl Tool for JobFirstUploadResumeTool {
                         });
                     }
                     jobfirst_resume_store::set_resume(markdown.clone());
-                    Ok(ToolResult { success: true, output: format!("Resume uploaded and parsed. Use 'help me match jobs' to get recommendations.\nPreview:\n{}", if markdown.len() > 200 { format!("{}...", &markdown[..200]) } else { markdown }).into(), error: None })
+                    Ok(ToolResult { success: true, output: format!("Resume uploaded and parsed. Use 'help me match jobs' to get recommendations.\nPreview:\n{}", if markdown.chars().count() > 200 { format!("{}...", markdown.chars().take(200).collect::<String>()) } else { markdown }).into(), error: None })
                 }
                 Err(e) => Ok(ToolResult {
                     success: false,
