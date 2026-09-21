@@ -111,18 +111,18 @@ impl Tool for JobFirstGetMatchesTool {
             if let Some(ref fp) = file_path {
                 let path = std::path::Path::new(fp);
                 if !path.exists() {
-                    return Ok(ToolResult { success: false, output: String::new(), error: Some(format!("file not found: {}", fp)) });
+                    return Ok(ToolResult { success: false, output: String::new().into(), error: Some(format!("file not found: {}", fp)) });
                 }
                 let ext = path.extension().and_then(|e| e.to_str()).map(|e| e.to_lowercase()).unwrap_or_default();
                 let content = if ext == "pdf" || ext == "docx" || ext == "doc" || ext == "xlsx" || ext == "xls" {
                     match tatha_convert_file(path).await {
                         Ok(markdown) => { jobfirst_resume_store::set_resume(markdown.clone()); markdown }
-                        Err(e) => return Ok(ToolResult { success: false, output: String::new(), error: Some(format!("parse failed: {}", e)) })
+                        Err(e) => return Ok(ToolResult { success: false, output: String::new().into(), error: Some(format!("parse failed: {}", e)) })
                     }
                 } else {
                     match tokio::fs::read_to_string(path).await {
                         Ok(c) => c,
-                        Err(e) => return Ok(ToolResult { success: false, output: String::new(), error: Some(format!("read failed: {}", e)) })
+                        Err(e) => return Ok(ToolResult { success: false, output: String::new().into(), error: Some(format!("read failed: {}", e)) })
                     }
                 };
                 resume_text_val = Some(content);
@@ -134,7 +134,7 @@ impl Tool for JobFirstGetMatchesTool {
 
             let resume_text_val = match resume_text_val {
                 Some(t) if !t.trim().is_empty() => t,
-                _ => return Ok(ToolResult { success: false, output: String::new(), error: Some("no resume found. Use jobfirst_upload_resume first, or provide resume_text/file_path.".to_string()) })
+                _ => return Ok(ToolResult { success: false, output: String::new().into(), error: Some("no resume found. Use jobfirst_upload_resume first, or provide resume_text/file_path.".to_string()) })
             };
 
             let base = api_base_url().trim_end_matches('/').to_string();
@@ -147,7 +147,7 @@ impl Tool for JobFirstGetMatchesTool {
                 Ok(resp) => {
                     let status = resp.status();
                     let body = resp.text().await.unwrap_or_default();
-                    if !status.is_success() { return Ok(ToolResult { success: false, output: body, error: Some(format!("Tatha API returned {}", status)) }); }
+                    if !status.is_success() { return Ok(ToolResult { success: false, output: body.into(), error: Some(format!("Tatha API returned {}", status)) }); }
                     let parsed: serde_json::Value = serde_json::from_str(&body).unwrap_or(json!({"raw": body}));
                     let empty_map = serde_json::Map::new();
                     let payload = parsed.get("data").and_then(|d| d.as_object()).or_else(|| parsed.as_object()).unwrap_or(&empty_map);
@@ -164,16 +164,16 @@ impl Tool for JobFirstGetMatchesTool {
                     }).collect();
                     let output = if lines.is_empty() { format!("No matching positions (evaluated {} entries)", total) }
                                  else { format!("Evaluated {} entries, Top-{} matches:\n\n{}", total, lines.len(), lines.join("\n\n")) };
-                    Ok(ToolResult { success: true, output, error: None })
+                    Ok(ToolResult { success: true, output: output.into(), error: None })
                 }
-                Err(e) => Ok(ToolResult { success: false, output: String::new(), error: Some(format!("Tatha request failed: {}. Check Tatha (8010) and JOBFIRST_API_URL={}", e, api_base_url())) })
+                Err(e) => Ok(ToolResult { success: false, output: String::new().into(), error: Some(format!("Tatha request failed: {}. Check Tatha (8010) and JOBFIRST_API_URL={}", e, api_base_url())) })
             }
         } else {
             if resume_id.is_none() && user_id.is_none() {
-                return Ok(ToolResult { success: false, output: String::new(), error: Some("need resume_id or user_id".to_string()) });
+                return Ok(ToolResult { success: false, output: String::new().into(), error: Some("need resume_id or user_id".to_string()) });
             }
             if is_smartjobs_backend() {
-                return Ok(ToolResult { success: true, output: "SmartJobs backend: use POST /api/v1/resumes/improve with resume_id + job_id.".to_string(), error: None });
+                return Ok(ToolResult { success: true, output: "SmartJobs backend: use POST /api/v1/resumes/improve with resume_id + job_id.".to_string().into(), error: None });
             }
             let base = api_base_url().trim_end_matches('/').to_string();
             let url = if let Some(rid) = &resume_id { format!("{}/api/v1/job/matches?resume_id={}&top_n={}", base, rid, top_n) }
@@ -183,9 +183,9 @@ impl Tool for JobFirstGetMatchesTool {
             match req.send().await {
                 Ok(resp) => {
                     let body = resp.text().await.unwrap_or_default();
-                    Ok(ToolResult { success: true, output: body, error: None })
+                    Ok(ToolResult { success: true, output: body.into(), error: None })
                 }
-                Err(e) => Ok(ToolResult { success: false, output: String::new(), error: Some(format!("request failed: {}", e)) })
+                Err(e) => Ok(ToolResult { success: false, output: String::new().into(), error: Some(format!("request failed: {}", e)) })
             }
         }
     }

@@ -103,12 +103,12 @@ impl Tool for JobFirstUploadResumeTool {
         let file_path = normalize_file_path(raw_path);
 
         if file_path.is_empty() {
-            return Ok(ToolResult { success: false, output: String::new(), error: Some("missing file_path parameter".to_string()) });
+            return Ok(ToolResult { success: false, output: String::new().into(), error: Some("missing file_path parameter".to_string()) });
         }
 
         let path = std::path::Path::new(&file_path);
         if !path.exists() {
-            return Ok(ToolResult { success: false, output: String::new(), error: Some(format!("file not found: {}", file_path)) });
+            return Ok(ToolResult { success: false, output: String::new().into(), error: Some(format!("file not found: {}", file_path)) });
         }
 
         let bytes = tokio::fs::read(path).await.map_err(|e| anyhow::anyhow!("read failed: {}", e))?;
@@ -137,17 +137,17 @@ impl Tool for JobFirstUploadResumeTool {
                     let status = resp.status();
                     let body = resp.text().await.unwrap_or_default();
                     if !status.is_success() {
-                        return Ok(ToolResult { success: false, output: body, error: Some(format!("Tatha convert API returned {}", status)) });
+                        return Ok(ToolResult { success: false, output: body.into(), error: Some(format!("Tatha convert API returned {}", status)) });
                     }
                     let parsed: serde_json::Value = serde_json::from_str(&body).unwrap_or(json!({"raw": body}));
                     let markdown = parsed.get("markdown").and_then(|v| v.as_str()).unwrap_or("").to_string();
                     if markdown.trim().is_empty() {
-                        return Ok(ToolResult { success: false, output: body, error: Some("empty conversion result".to_string()) });
+                        return Ok(ToolResult { success: false, output: body.into(), error: Some("empty conversion result".to_string()) });
                     }
                     jobfirst_resume_store::set_resume(markdown.clone());
-                    Ok(ToolResult { success: true, output: format!("Resume uploaded and parsed. Use 'help me match jobs' to get recommendations.\nPreview:\n{}", if markdown.len() > 200 { format!("{}...", &markdown[..200]) } else { markdown }), error: None })
+                    Ok(ToolResult { success: true, output: format!("Resume uploaded and parsed. Use 'help me match jobs' to get recommendations.\nPreview:\n{}", if markdown.len() > 200 { format!("{}...", &markdown[..200]) } else { markdown }).into(), error: None })
                 }
-                Err(e) => Ok(ToolResult { success: false, output: String::new(), error: Some(format!("Tatha request failed: {}. Check JOBFIRST_API_URL({}).", e, api_base_url())) })
+                Err(e) => Ok(ToolResult { success: false, output: String::new().into(), error: Some(format!("Tatha request failed: {}. Check JOBFIRST_API_URL({}).", e, api_base_url())) })
             }
         } else {
             let base_url = api_base_url();
@@ -172,7 +172,7 @@ impl Tool for JobFirstUploadResumeTool {
                     let body = resp.text().await.unwrap_or_default();
                     if !status.is_success() {
                         let err_msg = format!("API returned {}: {}", status, &body);
-                        return Ok(ToolResult { success: false, output: body, error: Some(err_msg) });
+                        return Ok(ToolResult { success: false, output: body.into(), error: Some(err_msg) });
                     }
                     let parsed: serde_json::Value = serde_json::from_str(&body).unwrap_or(json!({"raw": body}));
                     let summary = if is_smartjobs_backend() {
@@ -181,9 +181,9 @@ impl Tool for JobFirstUploadResumeTool {
                     } else if let Some(data) = parsed.get("data").and_then(|d| d.as_object()) {
                         format!("Upload successful. ID: {}, file: {}", data.get("id").and_then(|v| v.as_str()).unwrap_or("-"), data.get("original_name").and_then(|v| v.as_str()).unwrap_or(&file_name))
                     } else { format!("Upload successful. Response: {}", body) };
-                    Ok(ToolResult { success: true, output: summary, error: None })
+                    Ok(ToolResult { success: true, output: summary.into(), error: None })
                 }
-                Err(e) => Ok(ToolResult { success: false, output: String::new(), error: Some(format!("Request failed: {}.", e)) })
+                Err(e) => Ok(ToolResult { success: false, output: String::new().into(), error: Some(format!("Request failed: {}.", e)) })
             }
         }
     }

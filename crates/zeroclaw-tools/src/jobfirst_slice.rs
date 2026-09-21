@@ -123,7 +123,7 @@ impl Tool for JobFirstSliceSubmitResumeTool {
             } else {
                 return Ok(ToolResult {
                     success: false,
-                    output: String::new(),
+                    output: String::new().into(),
                     error: Some(format!("file not found: {}", fp)),
                 });
             }
@@ -131,7 +131,7 @@ impl Tool for JobFirstSliceSubmitResumeTool {
         if text.trim().is_empty() {
             return Ok(ToolResult {
                 success: false,
-                output: String::new(),
+                output: String::new().into(),
                 error: Some("resume_text or file_path required".into()),
             });
         }
@@ -147,7 +147,7 @@ impl Tool for JobFirstSliceSubmitResumeTool {
 
         Ok(ToolResult {
             success: true,
-            output: serde_json::to_string_pretty(&data)?,
+            output: serde_json::to_string_pretty(&data).map_err(|e| anyhow::anyhow!("json: {}", e))?.into(),
             error: None,
         })
     }
@@ -223,7 +223,7 @@ impl Tool for JobFirstSliceApplyTool {
         if job_ids.is_empty() {
             return Ok(ToolResult {
                 success: false,
-                output: String::new(),
+                output: String::new().into(),
                 error: Some("no job_ids to apply".into()),
             });
         }
@@ -237,7 +237,7 @@ impl Tool for JobFirstSliceApplyTool {
 
         Ok(ToolResult {
             success: true,
-            output: serde_json::to_string_pretty(&data)?,
+            output: serde_json::to_string_pretty(&data).map_err(|e| anyhow::anyhow!("json: {}", e))?.into(),
             error: None,
         })
     }
@@ -284,7 +284,7 @@ impl Tool for JobFirstSliceListInboxTool {
         let data = slice_data(&body)?;
         Ok(ToolResult {
             success: true,
-            output: serde_json::to_string_pretty(&data)?,
+            output: serde_json::to_string_pretty(&data).map_err(|e| anyhow::anyhow!("json: {}", e))?.into(),
             error: None,
         })
     }
@@ -346,7 +346,7 @@ impl Tool for JobFirstSliceInboxDecisionTool {
         if action != "interview" && action != "skip" {
             return Ok(ToolResult {
                 success: false,
-                output: String::new(),
+                output: String::new().into(),
                 error: Some("action must be interview or skip".into()),
             });
         }
@@ -357,7 +357,7 @@ impl Tool for JobFirstSliceInboxDecisionTool {
 
         Ok(ToolResult {
             success: true,
-            output: serde_json::to_string_pretty(&data)?,
+            output: serde_json::to_string_pretty(&data).map_err(|e| anyhow::anyhow!("json: {}", e))?.into(),
             error: None,
         })
     }

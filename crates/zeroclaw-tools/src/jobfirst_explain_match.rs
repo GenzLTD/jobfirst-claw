@@ -76,15 +76,15 @@ impl Tool for JobFirstExplainMatchTool {
                 if path.exists() {
                     match tokio::fs::read_to_string(path).await {
                         Ok(content) => resume_text_val = Some(content),
-                        Err(e) => return Ok(ToolResult { success: false, output: String::new(), error: Some(format!("read failed: {}", e)) })
+                        Err(e) => return Ok(ToolResult { success: false, output: String::new().into(), error: Some(format!("read failed: {}", e)) })
                     }
                 } else {
-                    return Ok(ToolResult { success: false, output: String::new(), error: Some(format!("file not found: {}", fp)) });
+                    return Ok(ToolResult { success: false, output: String::new().into(), error: Some(format!("file not found: {}", fp)) });
                 }
             }
             let resume_text_val = match resume_text_val {
                 Some(t) if !t.trim().is_empty() => t,
-                _ => return Ok(ToolResult { success: false, output: String::new(), error: Some("Tatha backend needs resume_text or file_path".to_string()) })
+                _ => return Ok(ToolResult { success: false, output: String::new().into(), error: Some("Tatha backend needs resume_text or file_path".to_string()) })
             };
 
             let base = api_base_url().trim_end_matches('/').to_string();
@@ -97,14 +97,14 @@ impl Tool for JobFirstExplainMatchTool {
                 Ok(resp) => {
                     let status = resp.status();
                     let body = resp.text().await.unwrap_or_default();
-                    if !status.is_success() { return Ok(ToolResult { success: false, output: body, error: Some(format!("Tatha API returned {}", status)) }); }
+                    if !status.is_success() { return Ok(ToolResult { success: false, output: body.into(), error: Some(format!("Tatha API returned {}", status)) }); }
                     let parsed: serde_json::Value = serde_json::from_str(&body).unwrap_or(json!({}));
                     let empty: Vec<serde_json::Value> = vec![];
                     let matches = parsed.get("matches").and_then(|m| m.as_array()).unwrap_or(&empty);
                     let empty_map = serde_json::Map::new();
                     let idx = job_index.saturating_sub(1);
                     let Some(m) = matches.get(idx) else {
-                        return Ok(ToolResult { success: true, output: format!("Match #{} does not exist. {} results total.", job_index, matches.len()), error: None });
+                        return Ok(ToolResult { success: true, output: format!("Match #{} does not exist. {} results total.", job_index, matches.len()).into(), error: None });
                     };
                     let score = m.get("score").and_then(|s| s.as_object()).unwrap_or(&empty_map);
                     let job = m.get("job").and_then(|j| j.as_object()).unwrap_or(&empty_map);
@@ -120,19 +120,19 @@ impl Tool for JobFirstExplainMatchTool {
                         lines.push("Fit highlights:".to_string());
                         for b in &fit_bullets { lines.push(format!("- {}", b)); }
                     }
-                    Ok(ToolResult { success: true, output: lines.join("\n"), error: None })
+                    Ok(ToolResult { success: true, output: lines.join("\n").into(), error: None })
                 }
-                Err(e) => Ok(ToolResult { success: false, output: String::new(), error: Some(format!("Tatha request failed: {}", e)) })
+                Err(e) => Ok(ToolResult { success: false, output: String::new().into(), error: Some(format!("Tatha request failed: {}", e)) })
             }
         } else {
             let job_id = match job_id {
                 Some(id) if !id.is_empty() => id,
-                _ => return Ok(ToolResult { success: false, output: String::new(), error: Some("missing job_id parameter".to_string()) })
+                _ => return Ok(ToolResult { success: false, output: String::new().into(), error: Some("missing job_id parameter".to_string()) })
             };
             if is_smartjobs_backend() {
                 let rid = resume_id.unwrap_or("");
                 if rid.is_empty() {
-                    return Ok(ToolResult { success: true, output: "SmartJobs: use POST /api/v1/resumes/improve with resume_id + job_id.".to_string(), error: None });
+                    return Ok(ToolResult { success: true, output: "SmartJobs: use POST /api/v1/resumes/improve with resume_id + job_id.".to_string().into(), error: None });
                 }
                 let base = api_base_url().trim_end_matches('/').to_string();
                 let url = format!("{}/resumes/improve", base);
@@ -144,12 +144,12 @@ impl Tool for JobFirstExplainMatchTool {
                         let status = resp.status();
                         let txt = resp.text().await.unwrap_or_default();
                         if !status.is_success() {
-                            Ok(ToolResult { success: false, output: txt, error: Some(format!("API returned {}", status)) })
+                            Ok(ToolResult { success: false, output: txt.into(), error: Some(format!("API returned {}", status)) })
                         } else {
-                            Ok(ToolResult { success: true, output: txt, error: None })
+                            Ok(ToolResult { success: true, output: txt.into(), error: None })
                         }
                     }
-                    Err(e) => Ok(ToolResult { success: false, output: String::new(), error: Some(format!("request failed: {}", e)) })
+                    Err(e) => Ok(ToolResult { success: false, output: String::new().into(), error: Some(format!("request failed: {}", e)) })
                 };
             }
             let base = api_base_url().trim_end_matches('/').to_string();
@@ -159,9 +159,9 @@ impl Tool for JobFirstExplainMatchTool {
             match req.send().await {
                 Ok(resp) => {
                     let body = resp.text().await.unwrap_or_default();
-                    Ok(ToolResult { success: true, output: body, error: None })
+                    Ok(ToolResult { success: true, output: body.into(), error: None })
                 }
-                Err(e) => Ok(ToolResult { success: false, output: String::new(), error: Some(format!("request failed: {}", e)) })
+                Err(e) => Ok(ToolResult { success: false, output: String::new().into(), error: Some(format!("request failed: {}", e)) })
             }
         }
     }
