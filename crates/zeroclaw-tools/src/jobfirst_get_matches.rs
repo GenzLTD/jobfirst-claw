@@ -14,7 +14,7 @@ zeroclaw_api::tool_attribution!(
 fn api_base_url() -> String {
     if is_tatha_backend() {
         std::env::var("JOBFIRST_API_URL")
-            .unwrap_or_else(|_| "http://localhost:3333/api/v1/tatha".to_string())
+            .unwrap_or_else(|_| "http://127.0.0.1:5210".to_string())
     } else if is_smartjobs_backend() {
         std::env::var("SMARTJOBS_API_URL")
             .or_else(|_| std::env::var("JOBFIRST_API_URL"))
