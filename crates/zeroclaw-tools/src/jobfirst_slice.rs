@@ -2,7 +2,7 @@
 
 use crate::jobfirst_resume_store;
 use async_trait::async_trait;
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 use std::time::Duration;
 use zeroclaw_api::tool::{Tool, ToolResult};
 
@@ -19,7 +19,7 @@ fn http_client() -> anyhow::Result<reqwest::Client> {
         .build()?)
 }
 
-fn slice_data<'a>(body: &'a Value) -> anyhow::Result<&'a Value> {
+fn slice_data(body: &Value) -> anyhow::Result<&Value> {
     let code = body.get("code").and_then(|v| v.as_i64()).unwrap_or(-1);
     if code != 0 {
         let msg = body
@@ -29,7 +29,7 @@ fn slice_data<'a>(body: &'a Value) -> anyhow::Result<&'a Value> {
         anyhow::bail!("{}", msg);
     }
     body.get("data")
-        .ok_or_else(|| anyhow::anyhow!("slice response missing data"))
+        .ok_or_else(|| anyhow::Error::msg("slice response missing data"))
 }
 
 async fn slice_post(path: &str, payload: Value) -> anyhow::Result<Value> {
@@ -71,7 +71,7 @@ fn resolve_resume_id(args: &Value) -> anyhow::Result<String> {
         }
     }
     jobfirst_resume_store::get_resume_id()
-        .ok_or_else(|| anyhow::anyhow!("no resume_id; call jobfirst_slice_submit_resume first"))
+        .ok_or_else(|| anyhow::Error::msg("no resume_id; call jobfirst_slice_submit_resume first"))
 }
 
 // --- submit resume ---
@@ -80,6 +80,12 @@ pub struct JobFirstSliceSubmitResumeTool;
 
 impl Default for JobFirstSliceSubmitResumeTool {
     fn default() -> Self {
+        Self
+    }
+}
+
+impl JobFirstSliceSubmitResumeTool {
+    pub fn new() -> Self {
         Self
     }
 }
@@ -141,13 +147,15 @@ impl Tool for JobFirstSliceSubmitResumeTool {
         let resume_id = data
             .get("resume_id")
             .and_then(|v| v.as_str())
-            .ok_or_else(|| anyhow::anyhow!("missing resume_id in response"))?;
+            .ok_or_else(|| anyhow::Error::msg("missing resume_id in response"))?;
         jobfirst_resume_store::set_resume(text);
         jobfirst_resume_store::set_resume_id(resume_id.to_string());
 
         Ok(ToolResult {
             success: true,
-            output: serde_json::to_string_pretty(&data).map_err(|e| anyhow::anyhow!("json: {}", e))?.into(),
+            output: serde_json::to_string_pretty(&data)
+                .map_err(|e| anyhow::Error::msg(format!("json: {}", e)))?
+                .into(),
             error: None,
         })
     }
@@ -159,6 +167,12 @@ pub struct JobFirstSliceApplyTool;
 
 impl Default for JobFirstSliceApplyTool {
     fn default() -> Self {
+        Self
+    }
+}
+
+impl JobFirstSliceApplyTool {
+    pub fn new() -> Self {
         Self
     }
 }
@@ -198,7 +212,8 @@ impl Tool for JobFirstSliceApplyTool {
         let resume_id = resolve_resume_id(&args)?;
         let top = args.get("top").and_then(|v| v.as_u64()).unwrap_or(3).max(1) as u32;
 
-        let job_ids: Vec<String> = if let Some(arr) = args.get("job_ids").and_then(|v| v.as_array()) {
+        let job_ids: Vec<String> = if let Some(arr) = args.get("job_ids").and_then(|v| v.as_array())
+        {
             arr.iter()
                 .filter_map(|v| v.as_str().map(|s| s.to_string()))
                 .collect()
@@ -237,7 +252,9 @@ impl Tool for JobFirstSliceApplyTool {
 
         Ok(ToolResult {
             success: true,
-            output: serde_json::to_string_pretty(&data).map_err(|e| anyhow::anyhow!("json: {}", e))?.into(),
+            output: serde_json::to_string_pretty(&data)
+                .map_err(|e| anyhow::Error::msg(format!("json: {}", e)))?
+                .into(),
             error: None,
         })
     }
@@ -249,6 +266,12 @@ pub struct JobFirstSliceListInboxTool;
 
 impl Default for JobFirstSliceListInboxTool {
     fn default() -> Self {
+        Self
+    }
+}
+
+impl JobFirstSliceListInboxTool {
+    pub fn new() -> Self {
         Self
     }
 }
@@ -284,7 +307,9 @@ impl Tool for JobFirstSliceListInboxTool {
         let data = slice_data(&body)?;
         Ok(ToolResult {
             success: true,
-            output: serde_json::to_string_pretty(&data).map_err(|e| anyhow::anyhow!("json: {}", e))?.into(),
+            output: serde_json::to_string_pretty(&data)
+                .map_err(|e| anyhow::Error::msg(format!("json: {}", e)))?
+                .into(),
             error: None,
         })
     }
@@ -296,6 +321,12 @@ pub struct JobFirstSliceInboxDecisionTool;
 
 impl Default for JobFirstSliceInboxDecisionTool {
     fn default() -> Self {
+        Self
+    }
+}
+
+impl JobFirstSliceInboxDecisionTool {
+    pub fn new() -> Self {
         Self
     }
 }
@@ -337,7 +368,7 @@ impl Tool for JobFirstSliceInboxDecisionTool {
             .and_then(|v| v.as_str())
             .map(|s| s.trim())
             .filter(|s| !s.is_empty())
-            .ok_or_else(|| anyhow::anyhow!("application_id required"))?;
+            .ok_or_else(|| anyhow::Error::msg("application_id required"))?;
         let action = args
             .get("action")
             .and_then(|v| v.as_str())
@@ -357,7 +388,9 @@ impl Tool for JobFirstSliceInboxDecisionTool {
 
         Ok(ToolResult {
             success: true,
-            output: serde_json::to_string_pretty(&data).map_err(|e| anyhow::anyhow!("json: {}", e))?.into(),
+            output: serde_json::to_string_pretty(&data)
+                .map_err(|e| anyhow::Error::msg(format!("json: {}", e)))?
+                .into(),
             error: None,
         })
     }
