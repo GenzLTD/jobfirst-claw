@@ -37,6 +37,7 @@ pub mod hardware_context;
 pub mod node_tool;
 pub mod nodes;
 pub mod openapi;
+pub mod portal;
 pub mod security_headers;
 pub mod session_queue;
 pub mod sse;
@@ -1616,6 +1617,10 @@ pub async fn run_gateway(
         .route("/pair", post(handle_pair))
         .route("/pair/code", get(handle_pair_code))
         .route("/webhook", post(handle_webhook))
+        // ── Portal contract adapter (public, read-only) ──
+        // Serves the company portal's Page Engine contract from agent-owned
+        // memory. Public by design: the menu tree is fetched before auth.
+        .merge(portal::portal_routes())
         .merge(sop_webhook_routes())
         .merge(optional_channel_routes())
         // ── Claude Code runner hooks ──
