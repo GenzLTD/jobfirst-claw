@@ -1,0 +1,21 @@
+name: token-format-check
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Report GITHUB_TOKEN format
+        env:
+          ACTIONS_TOKEN: ${{ github.token }}
+        run: |
+          echo "token_len=${#ACTIONS_TOKEN}"
+          case "$ACTIONS_TOKEN" in
+            *.*.*) verdict="STATELESS (new JWT format, ghs_APPID.JWT.JWT)";;
+            *)      verdict="STATEFUL (classic opaque)" ;;
+          esac
+          echo "verdict=$verdict"
