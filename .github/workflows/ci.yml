@@ -1093,9 +1093,47 @@ jobs:
     needs: [fmt, history-guard, repo-structure, relay-container-smoke-changes, relay-container-smoke, path-changes, lint, windows-clippy-tools-changes, windows-clippy-tools, build, check, check-plugin-backends, msrv, check-32bit, bench, test, parallel-runtime-test-changes, parallel-runtime-test, test-landlock, security, nix-eval, nix-hash-drift, docs-style, installer-drift, zerocode-rpc-boundary, web-permission-tests]
     runs-on: ubuntu-latest
     steps:
+      # Two failure modes, deliberately kept apart:
+      #   - a job that ran and failed      -> red, always
+      #   - a job that never ran (cancelled/skipped) -> only red when it is critical
+      # Treating every `cancelled` as a failure made concurrency supersedes look like
+      # build breakage; treating every `cancelled` as a pass would let an incomplete
+      # run read as green. Critical jobs must have completed *and* succeeded.
       - name: Check results
+        env:
+          # Unconditional jobs: they always run, so a non-`success` result on any of
+          # them means this change was never actually verified.
+          CRITICAL_JOBS: >-
+            fmt history-guard repo-structure lint build check check-plugin-backends
+            msrv check-32bit bench test test-landlock security zerocode-rpc-boundary
+            installer-drift
+          RESULTS: ${{ toJSON(needs) }}
         run: |
-          if [[ "${{ contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') }}" == "true" ]]; then
-            echo "::error::One or more CI jobs failed or were cancelled"
-            exit 1
+          set -euo pipefail
+          fail=0
+
+          # (1) A real failure is red regardless of which job produced it.
+          failed=$(printf '%s' "$RESULTS" | jq -r '[.[] | select(.result == "failure")] | length')
+          if [ "$failed" -gt 0 ]; then
+            echo "::error::$failed CI job(s) failed"
+            printf '%s' "$RESULTS" \
+              | jq -r 'to_entries[] | select(.value.result == "failure") | "  failed: \(.key)"'
+            fail=1
           fi
+
+          # (2) Critical jobs must have run *and* passed. `cancelled`/`skipped` here
+          # means the gate did not verify the change, so it must not read as green.
+          for job in $CRITICAL_JOBS; do
+            result=$(printf '%s' "$RESULTS" | jq -r --arg j "$job" '.[$j].result // "missing"')
+            if [ "$result" != "success" ]; then
+              echo "::error::Critical job '$job' did not complete successfully (result=$result)"
+              fail=1
+            fi
+          done
+
+          # (3) Non-critical jobs may be legitimately skipped (path filters) or
+          # cancelled (concurrency supersede); neither is a quality signal.
+          printf '%s' "$RESULTS" \
+            | jq -r 'to_entries[] | select(.value.result == "cancelled" or .value.result == "skipped") | "  note: \(.key) \(.value.result)"'
+
+          exit "$fail"
