@@ -1,0 +1,120 @@
+name: Dependabot auto-merge
+
+# Merges *low-risk* Dependabot PRs automatically, but only after every check on
+# the PR has settled and none of them failed.
+#
+# Why `pull_request_target`: Dependabot-triggered `pull_request` workflows are
+# treated like fork PRs -- read-only GITHUB_TOKEN, no secrets -- so they cannot
+# merge anything. `pull_request_target` runs in the base repository's context and
+# gets a write token. It is safe here because this workflow never checks out or
+# executes the PR's code; it only shells out to `gh` against the PR API.
+#
+# Why we do not use native auto-merge (`gh pr merge --auto`): the repository has
+# `allow_auto_merge: false` and no branch protection, so a native auto-merge
+# would have no required checks to wait for and would merge immediately. The
+# explicit wait loop below is what makes "only merge once CI is green" true.
+
+on:
+  pull_request_target:
+    types: [opened, reopened, synchronize, ready_for_review]
+
+concurrency:
+  group: dependabot-auto-merge-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+  pull-requests: write
+  checks: read
+  actions: read
+
+jobs:
+  auto-merge:
+    name: Auto-merge low-risk Dependabot PRs
+    if: >-
+      github.event.pull_request.user.login == 'dependabot[bot]' &&
+      github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Fetch Dependabot metadata
+        id: meta
+        uses: dependabot/fetch-metadata@21025c705c08248db411dc16f3619e6b5f9ea21a # v2
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      # Eligible: the GitHub Actions / Docker ecosystems (action pins and image
+      # digests are the lowest-risk bumps), or any semver-patch update.
+      # Everything else -- notably Rust crates moving across a minor version --
+      # stays manual: `aes 0.8 -> 0.9` and `cron 0.15 -> 0.17` both broke the
+      # build, and a 0.x minor bump is breaking by definition.
+      - name: Decide whether this PR is low-risk
+        id: decide
+        env:
+          BRANCH: ${{ github.event.pull_request.head.ref }}
+          UPDATE_TYPE: ${{ steps.meta.outputs.update-type }}
+        run: |
+          set -euo pipefail
+          eligible=false
+          reason="not low-risk"
+          case "$BRANCH" in
+            dependabot/github_actions/*)
+              eligible=true; reason="github_actions ecosystem" ;;
+            dependabot/docker/*)
+              eligible=true; reason="docker image/digest ecosystem" ;;
+          esac
+          if [ "$eligible" != "true" ] && [ "$UPDATE_TYPE" = "version-update:semver-patch" ]; then
+            eligible=true; reason="semver-patch update"
+          fi
+          echo "eligible=$eligible" >> "$GITHUB_OUTPUT"
+          echo "branch=$BRANCH update-type=${UPDATE_TYPE:-<none>} -> eligible=$eligible ($reason)"
+
+      - name: Approve
+        if: steps.decide.outputs.eligible == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+        # Cosmetic only (no required reviews are configured); never fatal.
+        run: |
+          gh pr review --approve "$PR_URL" || echo "approve skipped"
+
+      - name: Wait for every check to settle
+        id: wait
+        if: steps.decide.outputs.eligible == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+        run: |
+          set -uo pipefail
+          for i in $(seq 1 80); do
+            json=$(gh pr checks "$PR_URL" --json bucket 2>/dev/null) || json=""
+            if [ -z "$json" ] || [ "$json" = "[]" ]; then
+              echo "[$i] no checks reported yet"
+              sleep 30
+              continue
+            fi
+            total=$(printf '%s' "$json" | jq 'length')
+            pending=$(printf '%s' "$json" | jq '[.[] | select(.bucket == "pending")] | length')
+            failed=$(printf '%s' "$json" | jq '[.[] | select(.bucket == "fail" or .bucket == "cancel")] | length')
+            echo "[$i] total=$total pending=$pending failed=$failed"
+            if [ "$failed" -gt 0 ]; then
+              echo "ready=false" >> "$GITHUB_OUTPUT"
+              echo "At least one check failed; leaving the PR for a human."
+              exit 0
+            fi
+            if [ "$pending" -eq 0 ]; then
+              echo "ready=true" >> "$GITHUB_OUTPUT"
+              echo "All $total checks settled without failures."
+              exit 0
+            fi
+            sleep 30
+          done
+          echo "ready=false" >> "$GITHUB_OUTPUT"
+          echo "Timed out waiting for checks; leaving the PR for a human."
+
+      - name: Merge
+        if: steps.decide.outputs.eligible == 'true' && steps.wait.outputs.ready == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+        run: gh pr merge --squash "$PR_URL"
