@@ -65,8 +65,13 @@ jobs:
                    semgrep scan --config auto ${baseline} --sarif --output semgrep.sarif"
       - name: Upload SARIF to code scanning
         if: always()
-        # Fork PRs may have read-only tokens; trusted-event upload failures stay visible.
-        continue-on-error: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork }}
+        # Report-only. SARIF upload needs code scanning (GitHub Advanced Security on
+        # private repositories). Without it the uploader fails with "Resource not
+        # accessible by integration", turning an informational scan into a hard gate.
+        # The scan itself is deliberately non-gating (no --error); fork PRs carry
+        # read-only tokens for the same reason. Re-enable strict gating once code
+        # scanning is available (GHAS enabled, or repository made public).
+        continue-on-error: true
         uses: github/codeql-action/upload-sarif@dd903d2e4f5405488e5ef1422510ee31c8b32357 # v3.36.2
         with:
           sarif_file: semgrep.sarif

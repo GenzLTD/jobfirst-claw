@@ -16,6 +16,11 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      # Report-only. Dependency Review requires GitHub Advanced Security on private
+      # repositories; without it the action aborts with "Dependency review is not
+      # supported on this repository". Keep the advisory signal visible but
+      # non-gating until GHAS is enabled or the repository is made public.
       - uses: actions/dependency-review-action@3b139cfc5fae8b618d3eae3675e383bb1769c019 # v4.5.0
+        continue-on-error: true
         with:
           fail-on-severity: high
