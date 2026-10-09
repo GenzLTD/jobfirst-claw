@@ -467,8 +467,7 @@ fn encrypt_ca_key_pem(pem: &str, passphrase: &str) -> Result<Vec<u8>> {
     // getrandom 0.3 replaced the free function `getrandom()` with `fill()`;
     // 0.4 keeps `fill()` as the only slice-filling entry point.
     getrandom::fill(&mut salt).map_err(|e| anyhow::Error::msg(format!("salt rng: {e}")))?;
-    getrandom::fill(&mut nonce_bytes)
-        .map_err(|e| anyhow::Error::msg(format!("nonce rng: {e}")))?;
+    getrandom::fill(&mut nonce_bytes).map_err(|e| anyhow::Error::msg(format!("nonce rng: {e}")))?;
 
     let key = derive_ca_key(passphrase, &salt)?;
     let cipher = XChaCha20Poly1305::new(Key::from_slice(&key[..]));
