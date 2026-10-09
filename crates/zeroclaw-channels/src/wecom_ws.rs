@@ -272,9 +272,7 @@ impl MediaDecryptor {
 
         let mut buf = encrypted.to_vec();
         let plaintext = cbc::Decryptor::<Aes256>::new_from_slices(key, iv)
-            .map_err(|e| {
-                anyhow::Error::msg(format!("invalid WeCom media aeskey/iv length: {e}"))
-            })?
+            .map_err(|e| anyhow::Error::msg(format!("invalid WeCom media aeskey/iv length: {e}")))?
             .decrypt_padded::<NoPadding>(&mut buf)
             .map_err(|e| {
                 anyhow::Error::msg(format!("failed to decrypt WeCom media attachment: {e}"))

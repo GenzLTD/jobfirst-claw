@@ -902,9 +902,7 @@ fn decrypt_lark_webhook_body(body: &[u8], encrypt_key: Option<&str>) -> anyhow::
     let iv = &encrypted[..16];
     let mut ciphertext = encrypted[16..].to_vec();
     let plaintext = cbc::Decryptor::<Aes256>::new_from_slices(&key, iv)
-        .map_err(|error| {
-            anyhow::Error::msg(format!("invalid Lark AES key/iv length: {error}"))
-        })?
+        .map_err(|error| anyhow::Error::msg(format!("invalid Lark AES key/iv length: {error}")))?
         .decrypt_padded::<Pkcs7>(&mut ciphertext)
         .map_err(|error| {
             anyhow::Error::msg(format!("failed to decrypt webhook payload: {error}"))
