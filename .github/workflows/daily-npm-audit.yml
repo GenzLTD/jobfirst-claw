@@ -4,6 +4,14 @@ on:
   schedule:
     - cron: "23 9 * * *"
   workflow_dispatch:
+  # Also audit when the web dependency graph changes on master. Push runs are
+  # deliberately report-only: a finding still opens the tracking issue, but must
+  # not paint master red -- see the guard on "Propagate npm audit failure".
+  push:
+    branches: [master]
+    paths:
+      - "web/package.json"
+      - "web/package-lock.json"
 
 concurrency:
   group: daily-npm-audit
@@ -117,7 +125,9 @@ jobs:
           echo "issue_url=$issue_url" >> "$GITHUB_OUTPUT"
 
       - name: Propagate npm audit failure
-        if: steps.audit.outputs.audit_exit_code != '0'
+        # Gating on schedule/dispatch only; a push-triggered run reports through
+        # the issue above without failing the master build.
+        if: github.event_name != 'push' && steps.audit.outputs.audit_exit_code != '0'
         env:
           ISSUE_URL: ${{ steps.npm_audit_issue.outputs.issue_url }}
           AUDIT_PARSE_OK: ${{ steps.audit.outputs.audit_parse_ok }}
