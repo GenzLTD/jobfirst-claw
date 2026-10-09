@@ -8,8 +8,7 @@ ignore = [
     # Each entry below summarizes the corresponding rationale in deny.toml.
     # Re-evaluate both files; remove each entry once that tool's criteria are met.
     "RUSTSEC-2025-0134",  # rustls-pemfile unmaintained; transitive dep awaiting upstream migration to rustls-pki-types
-    "RUSTSEC-2026-0173",  # proc-macro-error2 unmaintained; in cargo-deny's resolved graph via matrix-sdk dev-deps; tracking #8519
-    "RUSTSEC-2026-0247",  # bitmaps unmaintained; matrix-sdk reaches imbl directly and via eyeball-im; tracking #9899 and matrix-org/matrix-rust-sdk#6859
+    "RUSTSEC-2026-0319",  # anymap2 unmaintained; no safe upgrade; still reached via matrix-sdk 0.19.1 dev-deps in zeroclaw-channels
 
     # ── cargo-audit reads the full Cargo.lock, so it flags advisories for
     # crates that cargo-deny (graph-aware) does not pull into the resolved
@@ -42,4 +41,27 @@ ignore = [
     "RUSTSEC-2024-0388",  # derivative unmaintained; in Cargo.lock but not resolved graph; tracking #8519
     "RUSTSEC-2025-0141",  # bincode unmaintained (informational, no CVE); in Cargo.lock but not resolved graph; tracking #8519
     "RUSTSEC-2024-0384",  # instant unmaintained (informational); in Cargo.lock but not resolved graph; tracking #8519
+
+    # ── Wasmtime 47.0.4 (plugins-wasmtime, non-default optional feature) ──
+    # cargo-deny does not resolve this optional stack (so `cargo deny check`
+    # stays green), but cargo-audit reads the full Cargo.lock and flags it.
+    # The RustSec fixes all require the 48.0.x line, and moving 47 -> 48 is not
+    # source-compatible: upstream's migration rewrites
+    # crates/zeroclaw-plugins/src/wasi_http.rs (WASI HTTP body/poll plumbing),
+    # component.rs and wasm_channel.rs, and this fork's copies of those files
+    # have diverged from the revision that migration was written against.
+    # Waived here pending a deliberate port of upstream zeroclaw#11253/#11475;
+    # remove these entries once the plugin stack reaches wasmtime >= 48.0.4.
+    "RUSTSEC-2026-0313",  # wasmtime-wasi-http: guest-driven host memory exhaustion on outgoing body write
+    "RUSTSEC-2026-0314",  # wasmtime-wasi: see upstream 48.0.x advisory batch
+    "RUSTSEC-2026-0315",  # wasmtime: see upstream 48.0.x advisory batch
+    "RUSTSEC-2026-0316",  # wasmtime: see upstream 48.0.x advisory batch
+    "RUSTSEC-2026-0320",  # wasmtime-wasi-http: panic on zero timeout
+    "RUSTSEC-2026-0321",  # wasmtime-wasi: see upstream 48.0.x advisory batch
+    "RUSTSEC-2026-0322",  # wasmtime-wasi: see upstream 48.0.x advisory batch
+    "RUSTSEC-2026-0323",  # wasmtime-wasi: see upstream 48.0.x advisory batch
+    "RUSTSEC-2026-0324",  # wasmtime-wasi: see upstream 48.0.x advisory batch
+    "RUSTSEC-2026-0325",  # wasmtime: see upstream 48.0.x advisory batch
+    "RUSTSEC-2026-0326",  # wasmtime: see upstream 48.0.x advisory batch
+    "RUSTSEC-2026-0327",  # wasmtime: see upstream 48.0.x advisory batch
 ]
