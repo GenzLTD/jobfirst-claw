@@ -158,9 +158,21 @@ shellexpand = "3.1"
 # WeChat iLink (optional) — AES-128-ECB and MD5 are mandated by the iLink
 # Bot media encryption protocol. The CDN requires ECB-mode ciphertext and
 # MD5 file checksums in upload requests. Not our choice of primitives.
-aes = { version = "0.8", optional = true }
-cbc = { version = "0.1", optional = true }
-ecb = { version = "0.1", optional = true }
+#
+# These three crates are one family and MUST be bumped together: `aes` 0.9
+# and `cbc`/`ecb` 0.2 both build on `cipher` 0.5, while `aes` 0.8 and
+# `cbc`/`ecb` 0.1 build on `cipher` 0.4. A split across the two `cipher`
+# majors does not type-check — the mode crates no longer see the block
+# cipher's trait impls (`aes::Aes256: cbc::cipher::BlockCipher` is not
+# satisfied). The 0.5 migration also renamed the in-place helpers
+# `*_padded_mut` -> `*_padded` behind the `BlockModeEncrypt` /
+# `BlockModeDecrypt` traits, and replaced `generic-array` with
+# `hybrid-array`, so `&[u8]` / `GenericArray` no longer coerce into
+# `&Key<_>` / `&Iv<_>` (`From<&[T; N]>` only). Call sites that pass slices
+# or a `Sha256::digest` output therefore use `new_from_slices`.
+aes = { version = "0.9", optional = true }
+cbc = { version = "0.2", optional = true }
+ecb = { version = "0.2", optional = true }
 md5 = { version = "0.8", optional = true }
 
 # GitHub App channel - RS256 JWT signing for app authentication. The

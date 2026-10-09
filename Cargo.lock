@@ -2968,11 +2968,11 @@ checksum = "d0881ea181b1df73ff77ffaaf9c7544ecc11e82fba9b5f27b262a3c73a332555"
 
 [[package]]
 name = "ecb"
-version = "0.1.2"
+version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1a8bfa975b1aec2145850fcaa1c6fe269a16578c44705a532ae3edc92b8881c7"
+checksum = "26f2a8b3e564eba0877223dc343703ad0385794e882e6d13f3a4dd5c6b1f41ac"
 dependencies = [
- "cipher 0.4.4",
+ "cipher 0.5.2",
 ]
 
 [[package]]
@@ -13965,7 +13965,7 @@ dependencies = [
 name = "zeroclaw-channels"
 version = "0.8.5"
 dependencies = [
- "aes 0.8.4",
+ "aes 0.9.3",
  "anyhow",
  "async-imap",
  "async-reactor-trait",
@@ -13973,7 +13973,7 @@ dependencies = [
  "axum",
  "base64 0.22.1",
  "bytes",
- "cbc 0.1.2",
+ "cbc 0.2.1",
  "chrono",
  "cpal",
  "directories",
