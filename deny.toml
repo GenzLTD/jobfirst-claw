@@ -215,10 +215,6 @@ version = "=0.48.5"
 name = "windows_x86_64_msvc"
 version = "=0.52.6"
 
-[[bans.skip]]
-name = "winnow"
-version = "=0.6.26"
-
 # cap-std (workspace-confined, no-follow file delivery) pulls an older slice of
 # its own transitive tree; the canonical newest versions are kept unskipped.
 [[bans.skip]]
@@ -288,6 +284,40 @@ reason = "pulled by windows-core 0.61 while the newer windows-* line uses 0.4"
 name = "windows-strings"
 version = "=0.4.2"
 reason = "pulled by windows-core 0.61 while the newer windows-* line uses 0.5"
+
+# Introduced by the `cron` 0.15.0 -> 0.17.0 bump (2026-10-09), verified with
+# cargo-deny 0.19.9. cron 0.17 swaps its parser stack: it drops `winnow 0.6`
+# in favour of `winnow 0.7`, and depends on `phf 0.11` directly, which pulls
+# phf_macros -> phf_generator -> rand 0.8. That drags older duplicates of
+# phf / phf_shared / rand / rand_chacha back into the resolved graph, and it
+# retires the previous `winnow =0.6.26` skip because 0.6.26 leaves the graph
+# entirely. The canonical (newest) version of each crate is the one left
+# unskipped. Remove these entries once cron moves past phf 0.11.
+
+[[bans.skip]]
+name = "phf"
+version = "=0.11.3"
+reason = "cron 0.17 requires phf 0.11 while chrono-tz carries 0.12"
+
+[[bans.skip]]
+name = "phf_shared"
+version = "=0.11.3"
+reason = "follows phf 0.11.3 from cron 0.17"
+
+[[bans.skip]]
+name = "rand"
+version = "=0.8.6"
+reason = "cron 0.17 -> phf_generator -> rand 0.8, alongside the 0.9/0.10 lines"
+
+[[bans.skip]]
+name = "rand_chacha"
+version = "=0.3.1"
+reason = "rand 0.8.6 from the cron 0.17 phf stack pulls rand_chacha 0.3"
+
+[[bans.skip]]
+name = "winnow"
+version = "=0.7.15"
+reason = "replaces the retired winnow =0.6.26 entry; cron 0.17 moved to winnow 0.7"
 
 [sources]
 unknown-registry = "deny"
