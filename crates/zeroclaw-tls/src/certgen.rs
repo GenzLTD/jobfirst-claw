@@ -464,8 +464,10 @@ fn encrypt_ca_key_pem(pem: &str, passphrase: &str) -> Result<Vec<u8>> {
 
     let mut salt = [0u8; CA_KEY_SALT_LEN];
     let mut nonce_bytes = [0u8; CA_KEY_NONCE_LEN];
-    getrandom::getrandom(&mut salt).map_err(|e| anyhow::Error::msg(format!("salt rng: {e}")))?;
-    getrandom::getrandom(&mut nonce_bytes)
+    // getrandom 0.3 replaced the free function `getrandom()` with `fill()`;
+    // 0.4 keeps `fill()` as the only slice-filling entry point.
+    getrandom::fill(&mut salt).map_err(|e| anyhow::Error::msg(format!("salt rng: {e}")))?;
+    getrandom::fill(&mut nonce_bytes)
         .map_err(|e| anyhow::Error::msg(format!("nonce rng: {e}")))?;
 
     let key = derive_ca_key(passphrase, &salt)?;
