@@ -36,7 +36,9 @@ JobFirstClaw 是 **ZeroClaw + 求职专用工具** 的单体项目，交付一�
 | `jobfirst_slice_list_inbox` | 反馈收件箱 |
 | `jobfirst_slice_inbox_decision` | 面试 / 跳过 |
 
-环境变量：`JOBFIRST_SLICE_URL`（默认 `http://127.0.0.1:3005`）。需先启动 `jobfirst-slice-service` 或经 gateway `/api/v1/slice`。
+环境变量：`JOBFIRST_SLICE_URL`（默认 `http://127.0.0.1:3333/api/v1/slice`，即经 api-gateway `:3333` 转发到 `jobfirst-slice-service`）。
+
+> 直连请显式设为 `http://127.0.0.1:3005`。**仅本机联调使用** —— 直连会绕过网关侧鉴权与身份注入（`X-User-Id = sha256(email)`）。
 
 **旧路径**（`JOBFIRST_BACKEND=tatha|smartjobs`）：`jobfirst_upload_resume` · `jobfirst_get_matches` · `jobfirst_explain_match`
 

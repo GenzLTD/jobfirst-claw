@@ -6,9 +6,17 @@ use serde_json::{Value, json};
 use std::time::Duration;
 use zeroclaw_api::tool::{Tool, ToolResult};
 
+/// Slice API 基地址。
+///
+/// 默认走 **api-gateway**（`:3333` 的 `/api/v1/slice/*`），而不是直连
+/// `jobfirst-slice-service`（`:3005`）：网关是生态的唯一入口，直连会绕过
+/// 网关侧鉴权与身份注入（`X-User-Id = sha256(email)`）。
+///
+/// 仅在本机联调、且明确不需要网关时，才用
+/// `JOBFIRST_SLICE_URL=http://127.0.0.1:3005` 覆盖回直连。
 fn slice_base_url() -> String {
     std::env::var("JOBFIRST_SLICE_URL")
-        .unwrap_or_else(|_| "http://127.0.0.1:3005".to_string())
+        .unwrap_or_else(|_| "http://127.0.0.1:3333/api/v1/slice".to_string())
         .trim_end_matches('/')
         .to_string()
 }
