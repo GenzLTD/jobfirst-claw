@@ -72,7 +72,7 @@ jobs:
         # read-only tokens for the same reason. Re-enable strict gating once code
         # scanning is available (GHAS enabled, or repository made public).
         continue-on-error: true
-        uses: github/codeql-action/upload-sarif@dd903d2e4f5405488e5ef1422510ee31c8b32357 # v3.36.2
+        uses: github/codeql-action/upload-sarif@2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2 # v4.38.2
         with:
           sarif_file: semgrep.sarif
           category: semgrep
