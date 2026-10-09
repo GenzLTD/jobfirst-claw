@@ -12,15 +12,11 @@ ignore = [
     # rustls-pemfile -- unmaintained, functionality moved to rustls-pki-types;
     # transitive dep, upstream migration tracked
     { id = "RUSTSEC-2025-0134", reason = "rustls-pemfile unmaintained; transitive dep awaiting upstream migration to rustls-pki-types" },
-    # proc-macro-error2 -- unmaintained derive/attribute macro helper; still in
-    # the resolved graph via matrix-sdk dev-deps (aquamarine) in zeroclaw-channels
-    { id = "RUSTSEC-2026-0173", reason = "proc-macro-error2 unmaintained; transitive macro helper via matrix-sdk dev-deps; tracking #8519" },
-    # bitmaps -- repository archived 2026-05-03, all versions affected, no safe
-    # upgrade available. Reached only transitively:
-    # matrix-sdk -> eyeball-im -> imbl -> bitmaps. Upstream tracking issue
-    # matrix-org/matrix-rust-sdk#6859 asks matrix-sdk to move off the imbl stack;
-    # drop this entry once a matrix-sdk release no longer pulls bitmaps.
-    { id = "RUSTSEC-2026-0247", reason = "bitmaps unmaintained; transitive via matrix-sdk -> eyeball-im -> imbl; no safe upgrade; upstream matrix-org/matrix-rust-sdk#6859" },
+    # anymap2 -- unmaintained, `anymap3` is the recommended replacement and no
+    # safe upgrade is available. Still pulled in by the matrix-sdk dev-dependency
+    # graph of zeroclaw-channels (matrix-sdk 0.19.1 -> anymap2). Mirrors the
+    # upstream zeroclaw exception; remove once matrix-sdk drops anymap2.
+    { id = "RUSTSEC-2026-0319", reason = "anymap2 unmaintained; no safe upgrade; reached only via matrix-sdk dev-deps in zeroclaw-channels; upstream matrix-org/matrix-rust-sdk migration pending" },
 ]
 
 [licenses]
@@ -83,25 +79,12 @@ name = "event-listener"
 version = "=2.5.3"
 
 [[bans.skip]]
-name = "foldhash"
-version = "=0.1.5"
-
-[[bans.skip]]
-name = "lru"
-version = "=0.16.4"
-reason = "temporary Nostr 0.44 duplicate tracked in #9602"
-
-[[bans.skip]]
 name = "getrandom"
 version = "=0.2.17"
 
 [[bans.skip]]
 name = "getrandom"
 version = "=0.3.4"
-
-[[bans.skip]]
-name = "hashbrown"
-version = "=0.15.5"
 
 [[bans.skip]]
 name = "hashbrown"
@@ -138,14 +121,6 @@ version = "=1.1.0"
 [[bans.skip]]
 name = "self_cell"
 version = "=0.10.3"
-
-[[bans.skip]]
-name = "strum"
-version = "=0.27.2"
-
-[[bans.skip]]
-name = "strum_macros"
-version = "=0.27.2"
 
 [[bans.skip]]
 name = "syn"
@@ -244,10 +219,6 @@ version = "=0.52.6"
 name = "winnow"
 version = "=0.6.26"
 
-[[bans.skip]]
-name = "wit-bindgen"
-version = "=0.51.0"
-
 # cap-std (workspace-confined, no-follow file delivery) pulls an older slice of
 # its own transitive tree; the canonical newest versions are kept unskipped.
 [[bans.skip]]
@@ -265,6 +236,58 @@ version = "=0.60.2"
 [[bans.skip]]
 name = "windows_i686_gnullvm"
 version = "=0.52.6"
+
+# Duplicates re-verified on 2026-10-09 with cargo-deny 0.19.9 against the tree
+# after the matrix-sdk 0.19 / rusqlite 0.40 / otel 0.33 bump.
+# The crypto quartet (block-buffer, cipher, crypto-common, inout) is the
+# 0.10.x/0.12.x split the new matrix-sdk crypto stack introduces and matches the
+# upstream zeroclaw skip list. base64 / miniz_oxide / windows-* are long-standing
+# splits unrelated to that bump. Remove each entry once the two sides converge.
+
+[[bans.skip]]
+name = "base64"
+version = "=0.22.1"
+reason = "async-imap pins base64 0.22 while the rest of the graph is on 0.23"
+
+[[bans.skip]]
+name = "block-buffer"
+version = "=0.10.4"
+reason = "matrix-sdk 0.19 crypto stack pulls the 0.12 line; other deps still on 0.10"
+
+[[bans.skip]]
+name = "cipher"
+version = "=0.4.4"
+reason = "matrix-sdk 0.19 crypto stack pulls the 0.5 line; other deps still on 0.4"
+
+[[bans.skip]]
+name = "crypto-common"
+version = "=0.1.7"
+reason = "matrix-sdk 0.19 crypto stack pulls the 0.2 line; other deps still on 0.1"
+
+[[bans.skip]]
+name = "inout"
+version = "=0.1.4"
+reason = "matrix-sdk 0.19 crypto stack pulls the 0.2 line; other deps still on 0.1"
+
+[[bans.skip]]
+name = "miniz_oxide"
+version = "=0.8.9"
+reason = "png 0.18 still compiles against miniz_oxide 0.8; flate2 is on 0.9"
+
+[[bans.skip]]
+name = "windows-core"
+version = "=0.61.2"
+reason = "windows 0.61 vs newer windows-* line; converge on the next windows bump"
+
+[[bans.skip]]
+name = "windows-result"
+version = "=0.3.4"
+reason = "pulled by windows-core 0.61 while the newer windows-* line uses 0.4"
+
+[[bans.skip]]
+name = "windows-strings"
+version = "=0.4.2"
+reason = "pulled by windows-core 0.61 while the newer windows-* line uses 0.5"
 
 [sources]
 unknown-registry = "deny"
