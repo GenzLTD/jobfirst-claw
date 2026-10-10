@@ -25,11 +25,11 @@
 
 use super::AppState;
 use axum::{
+    Router,
     extract::{Path, Query, State},
     http::StatusCode,
     response::{IntoResponse, Json},
     routing::get,
-    Router,
 };
 use serde::{Deserialize, Serialize};
 use zeroclaw_memory::MemoryCategory;
@@ -196,7 +196,10 @@ pub async fn handle_menus(
 ///
 /// Returns 404 when the slug has no stored schema so the portal can fall back to
 /// its static view of that route.
-pub async fn handle_page(State(state): State<AppState>, Path(slug): Path<String>) -> impl IntoResponse {
+pub async fn handle_page(
+    State(state): State<AppState>,
+    Path(slug): Path<String>,
+) -> impl IntoResponse {
     let key = format!("{PAGE_KEY_PREFIX}{slug}");
 
     match state.mem.get(&key).await {
@@ -266,8 +269,14 @@ mod tests {
         let json = serde_json::to_value(&one).expect("serialize");
         let node = &json[0];
         assert!(node.get("parentId").is_some(), "parentId must be camelCase");
-        assert!(node.get("sortOrder").is_some(), "sortOrder must be camelCase");
-        assert!(node.get("visibleTo").is_some(), "visibleTo must be camelCase");
+        assert!(
+            node.get("sortOrder").is_some(),
+            "sortOrder must be camelCase"
+        );
+        assert!(
+            node.get("visibleTo").is_some(),
+            "visibleTo must be camelCase"
+        );
         assert!(
             node.get("children").is_none(),
             "absent children must be omitted, not null"
