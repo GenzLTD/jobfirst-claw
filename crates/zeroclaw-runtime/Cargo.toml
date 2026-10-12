@@ -65,7 +65,7 @@ sys-locale.workspace = true
 # Used only by `process_stats.rs` to sample this process's RSS/CPU% across
 # Linux, macOS, Windows, and FreeBSD. `default-features = false` drops the
 # multi-threaded refresh path (we sample a single pid).
-sysinfo = { version = "0.36", default-features = false, features = ["system"] }
+sysinfo = { version = "0.39", default-features = false, features = ["system"] }
 tar = "0.4"
 tempfile = "3.26"
 thiserror = "2.0"
