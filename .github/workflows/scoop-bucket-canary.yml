@@ -33,6 +33,10 @@ permissions:
 
 jobs:
   latest-release:
+    # Rehearses publication to the zeroclaw-labs Scoop bucket. There is no such
+    # bucket or credential here, so the rehearsal can only fail. Skip it in this
+    # repository; drop this `if:` to restore.
+    if: github.repository == 'zeroclaw-labs/zeroclaw'
     name: Resolve Current Release
     runs-on: ubuntu-latest
     outputs:
@@ -57,6 +61,7 @@ jobs:
           echo "Rehearsing the Scoop publish path against ${tag}." >> "$GITHUB_STEP_SUMMARY"
 
   rehearse:
+    if: github.repository == 'zeroclaw-labs/zeroclaw'
     name: Rehearse Scoop Publish
     needs: latest-release
     uses: ./.github/workflows/pub-scoop.yml

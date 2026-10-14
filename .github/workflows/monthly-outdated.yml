@@ -25,6 +25,10 @@ env:
 
 jobs:
   outdated:
+    # Dependabot already files and auto-merges dependency updates in this
+    # repository, so the monthly cargo-outdated sweep only re-reports the same
+    # drift (and failed on 2026-10-01). Skip it here; drop this `if:` to restore.
+    if: github.repository == 'zeroclaw-labs/zeroclaw'
     name: Outdated Dependency Scan
     runs-on: ubuntu-24.04
     timeout-minutes: 20
