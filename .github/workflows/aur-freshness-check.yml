@@ -24,6 +24,11 @@ permissions:
 
 jobs:
   check:
+    # This check asserts AUR publication state owned by zeroclaw-labs/zeroclaw.
+    # This repository is not that repository, so every scheduled run is a
+    # structural red (2026-09-28, 10-05, 10-12 all failed on the missing stable
+    # tag / unreachable package). Skip it here; drop this `if:` to restore.
+    if: github.repository == 'zeroclaw-labs/zeroclaw'
     name: Compare AUR Version To Release
     runs-on: ubuntu-latest
     env:

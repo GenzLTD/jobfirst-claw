@@ -18,6 +18,10 @@ concurrency:
 
 jobs:
   plan:
+    # Plans against the zeroclaw-labs project dashboard. That Projects v2 board
+    # does not exist here, so a dispatch can only fail. Skip it in this
+    # repository; drop this `if:` to restore.
+    if: github.repository == 'zeroclaw-labs/zeroclaw'
     name: Plan issue dashboard status
     runs-on: ubuntu-latest
     timeout-minutes: 5
