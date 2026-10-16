@@ -26,6 +26,10 @@
           - ".github/*.yml"
           - ".github/*.json"
           - ".githooks/**"
+          # jobfirst-claw#29：仓根 Docker 载体（此前只改 Dockerfile 的 PR 零标签）
+          - "Dockerfile*"
+          - "docker-compose*.yml"
+          - ".dockerignore"
 
 "core":
   - changed-files:
