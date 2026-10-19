@@ -9,6 +9,14 @@ updates:
     open-pull-requests-limit: 3
     labels:
       - "dependencies"
+    # wasmtime 家族必须整体迁移：`wasmtime` / `wasmtime-wasi` / `wasmtime-wasi-http`
+    # 共享同一套 `p2` 宿主机 API，单独顶版会让编译直接崩——#71 把
+    # `wasmtime-wasi-http` 从 47 顶到 49、另两个留在 47，Lint / Check(all features)
+    # / MSRV 从此全红（E0432 `wasmtime_wasi_http::p2::WasiHttpCtxView`）。
+    # 要升就三个一起升，并在同一个 PR 里跑 `cargo check --workspace --all-features`。
+    ignore:
+      - dependency-name: "wasmtime"
+      - dependency-name: "wasmtime-*"
     groups:
       rust-all:
         patterns:
