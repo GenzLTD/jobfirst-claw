@@ -717,6 +717,30 @@ fn aur_publisher_rejects_stale_release_downgrades() {
     );
 }
 
+/// Upstream-only workflows are retired behind an explicit repository guard
+/// rather than deleted, so this fork keeps upstream's file but never runs it:
+/// there is no `zeroclaw-labs` Scoop bucket and no `SCOOP_BUCKET_TOKEN` here, so
+/// the rehearsal could only burn a red run every Monday.
+///
+/// The guard is the *only* condition these jobs may carry. It removes the
+/// rehearsal from repositories that cannot publish while leaving upstream's
+/// fail-closed schedule intact — every other `if:` (a branch filter, a
+/// `success()` shortcut) or `continue-on-error:` would let a dead credential go
+/// unnoticed again, which is the exact regression this gate exists to catch.
+const UPSTREAM_ONLY_GUARD: &str = "if: github.repository == 'zeroclaw-labs/zeroclaw'";
+
+fn assert_fail_closed_job(job: &str, subject: &str) {
+    let weakening = job
+        .lines()
+        .filter(|line| line.starts_with("    if:") || line.starts_with("    continue-on-error:"))
+        .filter(|line| line.trim() != UPSTREAM_ONLY_GUARD)
+        .collect::<Vec<_>>();
+    assert!(
+        weakening.is_empty(),
+        "{subject} must run and fail closed on every scheduled invocation, found: {weakening:?}"
+    );
+}
+
 #[test]
 fn scoop_credential_canary_fails_closed_without_weakening_generic_dry_runs() {
     let root = Path::new(env!("CARGO_MANIFEST_DIR"));
@@ -814,19 +838,9 @@ fn scoop_credential_canary_fails_closed_without_weakening_generic_dry_runs() {
         "the Scoop canary must stay manually dispatchable for credential rotation proof"
     );
     let canary_resolve_job = yaml_block(&canary_workflow, "  latest-release:\n");
-    assert!(
-        !canary_resolve_job.lines().any(|line| {
-            line.starts_with("    if:") || line.starts_with("    continue-on-error:")
-        }),
-        "the Scoop canary tag resolver must run and fail closed on every scheduled invocation"
-    );
+    assert_fail_closed_job(canary_resolve_job, "the Scoop canary tag resolver");
     let canary_job = yaml_block(&canary_workflow, "  rehearse:\n");
-    assert!(
-        !canary_job.lines().any(|line| {
-            line.starts_with("    if:") || line.starts_with("    continue-on-error:")
-        }),
-        "the Scoop canary rehearsal must run and fail closed on every scheduled invocation"
-    );
+    assert_fail_closed_job(canary_job, "the Scoop canary rehearsal");
     for required in [
         "uses: ./.github/workflows/pub-scoop.yml",
         "dry_run: true",
