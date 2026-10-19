@@ -10,15 +10,35 @@ use zeroclaw_api::tool::{Tool, ToolResult};
 ///
 /// 默认走 **api-gateway**（`:3333` 的 `/api/v1/slice/*`），而不是直连
 /// `jobfirst-slice-service`（`:3005`）：网关是生态的唯一入口，直连会绕过
-/// 网关侧鉴权与身份注入（`X-User-Id = sha256(email)`）。
+/// 网关侧鉴权与身份注入（`X-Actor-Sub` = 原始 sub，`X-User-Id` = sha256(sub)）。
 ///
 /// 仅在本机联调、且明确不需要网关时，才用
-/// `JOBFIRST_SLICE_URL=http://127.0.0.1:3005` 覆盖回直连。
+/// `JOBFIRST_SLICE_URL=http://127.0.0.1:3005` 覆盖回直连（直连需
+/// `JOBFIRST_SLICE_ALLOW_ANONYMOUS=1`，否则 401）。
 fn slice_base_url() -> String {
     std::env::var("JOBFIRST_SLICE_URL")
         .unwrap_or_else(|_| "http://127.0.0.1:3333/api/v1/slice".to_string())
         .trim_end_matches('/')
         .to_string()
+}
+
+/// 终端身份凭证（HS256 / Supabase token 均可，由网关验签）。
+///
+/// 网关现要求 `Authorization: Bearer <token>`，缺 token 即 401；
+/// 这里只读环境变量，不落盘、不进日志。
+fn slice_token() -> Option<String> {
+    std::env::var("JOBFIRST_SLICE_TOKEN")
+        .ok()
+        .or_else(|| std::env::var("JOBFIRST_API_KEY").ok())
+        .map(|s| s.trim().to_string())
+        .filter(|s| !s.is_empty())
+}
+
+fn with_auth(builder: reqwest::RequestBuilder) -> reqwest::RequestBuilder {
+    match slice_token() {
+        Some(token) => builder.bearer_auth(token),
+        None => builder,
+    }
 }
 
 fn http_client() -> anyhow::Result<reqwest::Client> {
@@ -42,7 +62,10 @@ fn slice_data(body: &Value) -> anyhow::Result<&Value> {
 
 async fn slice_post(path: &str, payload: Value) -> anyhow::Result<Value> {
     let url = format!("{}/{}", slice_base_url(), path.trim_start_matches('/'));
-    let resp = http_client()?.post(&url).json(&payload).send().await?;
+    let resp = with_auth(http_client()?.post(&url))
+        .json(&payload)
+        .send()
+        .await?;
     let status = resp.status();
     let body: Value = resp.json().await?;
     if !status.is_success() {
@@ -62,7 +85,7 @@ async fn slice_get(path: &str, query: &str) -> anyhow::Result<Value> {
             query
         )
     };
-    let resp = http_client()?.get(&url).send().await?;
+    let resp = with_auth(http_client()?.get(&url)).send().await?;
     let status = resp.status();
     let body: Value = resp.json().await?;
     if !status.is_success() {
