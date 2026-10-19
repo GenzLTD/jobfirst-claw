@@ -64,4 +64,32 @@ ignore = [
     "RUSTSEC-2026-0325",  # wasmtime: see upstream 48.0.x advisory batch
     "RUSTSEC-2026-0326",  # wasmtime: see upstream 48.0.x advisory batch
     "RUSTSEC-2026-0327",  # wasmtime: see upstream 48.0.x advisory batch
+
+    # ── Wasmtime 47.0.4, second batch (published 2026-10-12) ──
+    # Same crate, same root cause, same fix line: RustSec now asks for
+    # >= 48.0.6, < 49.0.0 OR >= 49.0.3. Nothing about the 47 -> 48 port
+    # changed since the block above was written, so these ride the identical
+    # waiver instead of pretending the earlier batch was narrower.
+    # Tracking: #85 (port the plugin wasm stack to wasmtime >= 48.0.6/49.0.3).
+    "RUSTSEC-2026-0350",  # wasmtime-wasi-http: see 48.0.x advisory batch
+    "RUSTSEC-2026-0351",  # wasmtime-wasi-http: see 48.0.x advisory batch
+    "RUSTSEC-2026-0352",  # wasmtime-wasi: see 48.0.x advisory batch
+    "RUSTSEC-2026-0353",  # wasmtime: see 48.0.x advisory batch
+    "RUSTSEC-2026-0354",  # wasmtime: see 48.0.x advisory batch
+    "RUSTSEC-2026-0355",  # wasmtime: see 48.0.x advisory batch
+    "RUSTSEC-2026-0356",  # wasmtime: see 48.0.x advisory batch
+    "RUSTSEC-2026-0357",  # wasmtime: see 48.0.x advisory batch
+    "RUSTSEC-2026-0358",  # wasmtime: see 48.0.x advisory batch
+    "RUSTSEC-2026-0359",  # wasmtime: see 48.0.x advisory batch
+    "RUSTSEC-2026-0361",  # wasmtime: see 48.0.x advisory batch
+    "RUSTSEC-2026-0362",  # wasmtime: see 48.0.x advisory batch
+    "RUSTSEC-2026-0363",  # wasmtime: see 48.0.x advisory batch
+    "RUSTSEC-2026-0364",  # wasmtime: see 48.0.x advisory batch
+
+    # ruzstd 0.8.3 (RUSTSEC-2026-0344, 7.5) is pinned through
+    # wasmtime 47 -> object 0.39, so the 0.9.x fix cannot land until the
+    # wasmtime port above does. Waiving it here keeps the two in one place
+    # instead of hiding a high-severity entry behind a lockfile bump that
+    # the resolver refuses to make.
+    "RUSTSEC-2026-0344",  # ruzstd decompression bomb; unblocked by #85
 ]

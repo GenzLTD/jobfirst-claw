@@ -319,6 +319,43 @@ name = "winnow"
 version = "=0.7.15"
 reason = "replaces the retired winnow =0.6.26 entry; cron 0.17 moved to winnow 0.7"
 
+# zip 9 (RUSTSEC-2026-0367/0368/0369) brings nix 0.31 for its unix file-mode
+# handling, next to the pre-existing nix 0.30 line from the sandbox/hardware
+# stack. Removable once the older consumer moves to 0.31.
+[[bans.skip]]
+name = "nix"
+version = "=0.30.1"
+reason = "zip 9 pulls nix 0.31; the 0.30 line is still reached from the sandbox stack"
+
+# sysinfo 0.39 moved to the windows 0.62 generation while the rest of the
+# graph is still on 0.61. These are the transitive 0.6x-adjacent crates that
+# only exist because both generations are present; they disappear together
+# when sysinfo's consumer upgrades.
+[[bans.skip]]
+name = "windows"
+version = "=0.61.3"
+reason = "sysinfo 0.39 uses windows 0.62 while the rest of the graph stays on 0.61"
+
+[[bans.skip]]
+name = "windows-collections"
+version = "=0.2.0"
+reason = "follows the windows 0.61 generation pinned by older sysinfo consumers"
+
+[[bans.skip]]
+name = "windows-future"
+version = "=0.2.1"
+reason = "follows the windows 0.61 generation pinned by older sysinfo consumers"
+
+[[bans.skip]]
+name = "windows-numerics"
+version = "=0.2.0"
+reason = "follows the windows 0.61 generation pinned by older sysinfo consumers"
+
+[[bans.skip]]
+name = "windows-threading"
+version = "=0.1.0"
+reason = "follows the windows 0.61 generation pinned by older sysinfo consumers"
+
 [sources]
 unknown-registry = "deny"
 unknown-git = "deny"
