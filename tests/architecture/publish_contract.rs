@@ -708,11 +708,15 @@ fn published_crates_never_include_files_outside_their_own_directory() {
                         .to_path_buf()
                 };
                 let resolved = normalize(&base, &include.path);
+                // Normalize separators: `to_string_lossy()` yields `\` on Windows,
+                // while ESCAPE_EXCEPTIONS literals use `/`. Without this the
+                // allowlist silently never matches off the primary platform.
+                // (Same treatment as release_workflow.rs.)
                 let rel = source_path
                     .strip_prefix(repo_root())
                     .unwrap_or(&source_path)
                     .to_string_lossy()
-                    .into_owned();
+                    .replace('\\', "/");
                 let excepted = ESCAPE_EXCEPTIONS
                     .iter()
                     .any(|(f, p)| *f == rel && *p == include.path);
@@ -758,4 +762,31 @@ fn published_crates_never_include_files_outside_their_own_directory() {
          and crates/zeroclaw-tools/locales) rather than reaching up out of the crate.",
         violations.join("\n"),
     );
+}
+
+/// Guards the allowlist itself, on every platform.
+///
+/// The main test above only exercises an exception when the file's include
+/// actually fires. If a source file is renamed, moved, or its include is
+/// rewritten, the entry becomes dead weight — and, worse, a stale entry that
+/// still matches would silently exempt a *different* file that inherited the
+/// old path. Assert each entry points at a real file whose includes contain
+/// the excepted path, so rot fails loudly instead of silently.
+#[test]
+fn escape_exceptions_still_reference_their_declared_include() {
+    for (file, include_path) in ESCAPE_EXCEPTIONS {
+        let source = repo_root().join(file);
+        assert!(
+            source.is_file(),
+            "ESCAPE_EXCEPTIONS entry `{file}` does not point at a real file on this platform"
+        );
+        let text = fs::read_to_string(&source).expect("read excepted source file");
+        assert!(
+            compile_time_includes(&text)
+                .iter()
+                .any(|include| include.path == *include_path),
+            "ESCAPE_EXCEPTIONS entry ({file}, {include_path}) no longer matches any \
+             include in that file; remove the stale entry"
+        );
+    }
 }
